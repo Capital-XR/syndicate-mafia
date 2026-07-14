@@ -205,7 +205,7 @@
                         <div class="bg-purple-950/60 p-3 rounded text-syndicate-500 text-xl"><i class="fas fa-file-shield"></i></div>
                         <h3 class="serif-font font-bold text-lg">SOP & Roster</h3>
                     </div>
-                    <p class="text-gray-400 text-sm mb-6">Review official codes of conduct, mafia hierarchies, active divisions, and member indexes.</p>
+                    <p class="text-gray-400 text-sm mb-6">Review official codes of conduct, gang hierarchies, active divisions, and member indexes.</p>
                 </div>
                 <div class="space-y-3">
                     <button onclick="openDocumentsViewer('rules')" class="w-full text-left flex justify-between items-center text-xs bg-purple-950/30 hover:bg-purple-950/70 p-3 rounded border border-purple-900/30 transition-colors">
@@ -213,7 +213,7 @@
                         <i class="fas fa-book-open text-syndicate-500"></i>
                     </button>
                     <button onclick="openRosterViewer()" class="w-full text-left flex justify-between items-center text-xs bg-purple-950/30 hover:bg-purple-950/70 p-3 rounded border border-purple-900/30 transition-colors">
-                        <span>Official 	Mafia Roster</span>
+                        <span>Official Gang Roster</span>
                         <i class="fas fa-users text-syndicate-500"></i>
                     </button>
                 </div>
@@ -373,7 +373,7 @@
                 <button onclick="switchTab('admin', 'tab-ranks-setup')" id="btn-admin-tab-ranks-setup" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Hierarchy & Ranks Configuration</button>
                 <button onclick="switchTab('admin', 'tab-certs-setup')" id="btn-admin-tab-certs-setup" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Certifications Setup</button>
                 <button onclick="switchTab('admin', 'tab-admin-docs')" id="btn-admin-tab-admin-docs" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Internal SOP Texts</button>
-                <button onclick="switchTab('admin', 'tab-turfs')" id="btn-admin-tab-turfs" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Mafia Turfs</button>
+                <button onclick="switchTab('admin', 'tab-turfs')" id="btn-admin-tab-turfs" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Gang Turfs</button>
                 <button onclick="switchTab('admin', 'tab-gallery')" id="btn-admin-tab-gallery" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Gallery</button>
                 <button onclick="switchTab('admin', 'tab-discord-settings')" id="btn-admin-tab-discord-settings" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Discord OAuth Setup</button>
                 <button onclick="switchTab('admin', 'tab-cloud-sync')" id="btn-admin-tab-cloud-sync" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Cloud Sync & Backups</button>
@@ -747,7 +747,7 @@
                                         <option value="Blacklisted">Blacklist</option>
                                     </select>
                                 </div>
-                                <div class="col-span-2">
+                                class="col-span-2">
                                     <label class="text-[10px] text-gray-400 block mb-1">Internal Log Notes</label>
                                     <textarea id="roster-punish-notes" rows="2" placeholder="Conduct remarks / incident files..." class="w-full bg-black border border-purple-900/20 rounded p-1.5 text-[11px] text-white"></textarea>
                                 </div>
@@ -1016,12 +1016,10 @@
                         const cloudData = await response.json();
                         let parsedData = cloudData;
                         
-                        // Handle standard nesting returned by jsonbin formats
                         if (cloudData.record) {
                             parsedData = cloudData.record;
                         }
                         
-                        // Validate format has crucial state attributes before overwriting
                         if (parsedData && (parsedData.command || parsedData.members)) {
                             state = parsedData;
                             localStorage.setItem('tsf_state', JSON.stringify(state));
@@ -1047,7 +1045,13 @@
         async function pushStateToCloud() {
             const statusIndicator = document.getElementById('cloud-sync-status');
             try {
-                const headers = { "Content-Type": "application/json" };
+                let headers = { "Content-Type": "application/json" };
+                
+                // If KVdb, use text/plain to bypass CORS Preflight blocks completely
+                if (state.cloudSyncUrl.includes("kvdb.io")) {
+                    headers = { "Content-Type": "text/plain" };
+                }
+
                 if (state.cloudSyncHeaderKey && state.cloudSyncHeaderVal) {
                     headers[state.cloudSyncHeaderKey] = state.cloudSyncHeaderVal;
                 }
@@ -1056,11 +1060,11 @@
                 let method = "POST";
                 
                 if (state.cloudSyncUrl.includes("api.jsonbin.io")) {
-                    method = "PUT"; // PUT method for JSONBin updates
+                    method = "PUT";
                 } else if (state.cloudSyncUrl.includes("kvdb.io")) {
-                    method = "POST"; // POST for KVdb buckets
+                    method = "POST";
                 } else {
-                    method = "PUT"; // Standard fallback
+                    method = "PUT";
                 }
 
                 const response = await fetch(state.cloudSyncUrl, {
@@ -1410,6 +1414,7 @@
             return { start: 1, end: 100 };
         }
 
+        // Standard 2-digit format converter (e.g. 05, 11)
         function formatIdentifier(num) {
             return String(num).padStart(2, '0');
         }
@@ -2001,7 +2006,7 @@
             }
             if (confirm("This will overwrite whatever is stored on the Cloud with your current local screen database. Continue?")) {
                 await pushStateToCloud();
-                alert("Data pushed to the cloud bucket successfully.");
+                alert("Data pushed to the cloud database successfully.");
             }
         }
 
@@ -2012,7 +2017,7 @@
             }
             if (confirm("This will overwrite your current local dashboard data with what is saved on the Cloud. Continue?")) {
                 await loadStateFromCloud();
-                alert("Data loaded from the cloud bucket successfully.");
+                alert("Data loaded from the cloud database successfully.");
             }
         }
 
