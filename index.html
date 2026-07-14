@@ -355,10 +355,12 @@
             <div class="flex justify-between items-center border-b border-purple-900/40 pb-4 mb-6">
                 <div>
                     <h2 class="serif-font text-2xl font-bold text-white">TSF ADMIN PORTAL</h2>
-                    <div class="flex items-center gap-2 mt-1">
+                    <div class="flex items-center gap-2 mt-1 flex-wrap gap-y-2">
                         <span class="text-xs text-syndicate-500 font-semibold tracking-wider">System Settings & Resources Configuration</span>
-                        <span class="text-gray-600">|</span>
-                        <div id="admin-logged-user-display" class="flex items-center gap-1.5 text-xs text-purple-400"></div>
+                        <span class="text-gray-600 hidden sm:inline">|</span>
+                        <div id="admin-logged-user-display" class="flex items-center gap-1.5 text-xs text-purple-400 mr-2"></div>
+                        <span class="text-gray-600 hidden sm:inline">|</span>
+                        <div class="text-[10px] text-gray-400 bg-black/40 px-2 py-0.5 rounded font-mono">DB URL: https://kvdb.io/Db9q9z4t3H3GaZa63bAdkt/tsf_state</div>
                     </div>
                 </div>
                 <button onclick="closeAdminPortal()" class="bg-red-950/40 hover:bg-red-800 text-white px-4 py-2 rounded text-xs uppercase tracking-wider font-bold transition-colors">
@@ -1019,7 +1021,7 @@
                             statusIndicator.innerHTML = `<i class="fas fa-cloud text-purple-400"></i> Cloud Ready`;
                             statusIndicator.className = "flex items-center gap-1.5 text-xs text-purple-400 font-semibold bg-purple-950/30 px-3 py-1 rounded border border-purple-900/30";
                         }
-                        return; // Exit successfully
+                        return true; // Exit successfully
                     }
 
                     if (response.ok) {
@@ -1038,6 +1040,7 @@
                                 statusIndicator.innerHTML = `<i class="fas fa-cloud text-emerald-400"></i> Cloud Synced`;
                                 statusIndicator.className = "flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-950/30 px-3 py-1 rounded border border-emerald-900/30";
                             }
+                            return true;
                         }
                     } else {
                         throw new Error(`Cloud returned status: ${response.status}`);
@@ -1048,19 +1051,16 @@
                         statusIndicator.innerHTML = `<i class="fas fa-exclamation-triangle text-red-400"></i> Sync Failed`;
                         statusIndicator.className = "flex items-center gap-1.5 text-xs text-red-400 font-semibold bg-red-950/30 px-3 py-1 rounded border border-red-900/30";
                     }
+                    return false;
                 }
             }
+            return false;
         }
 
         async function pushStateToCloud() {
             const statusIndicator = document.getElementById('cloud-sync-status');
             try {
-                let headers = { "Content-Type": "application/json" };
-                
-                // If KVdb, use text/plain to bypass CORS Preflight blocks completely
-                if (state.cloudSyncUrl.includes("kvdb.io")) {
-                    headers = { "Content-Type": "text/plain" };
-                }
+                let headers = { "Content-Type": "text/plain" };
 
                 if (state.cloudSyncHeaderKey && state.cloudSyncHeaderVal) {
                     headers[state.cloudSyncHeaderKey] = state.cloudSyncHeaderVal;
@@ -1068,14 +1068,6 @@
                 
                 let bodyData = JSON.stringify(state);
                 let method = "POST";
-                
-                if (state.cloudSyncUrl.includes("api.jsonbin.io")) {
-                    method = "PUT";
-                } else if (state.cloudSyncUrl.includes("kvdb.io")) {
-                    method = "POST";
-                } else {
-                    method = "PUT";
-                }
 
                 const response = await fetch(state.cloudSyncUrl, {
                     method: method,
@@ -1089,11 +1081,17 @@
                         statusIndicator.innerHTML = `<i class="fas fa-cloud text-emerald-400"></i> Cloud Synced`;
                         statusIndicator.className = "flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-950/30 px-3 py-1 rounded border border-emerald-900/30";
                     }
+                    return true;
                 } else {
-                    console.error("Cloud update rejected. Response Code:", response.status);
+                    const errText = await response.text();
+                    console.error("Cloud push failed:", response.status, errText);
+                    alert(`⚠️ Cloud Sync Failed!\n\nStatus Code: ${response.status}\nResponse: ${errText}`);
+                    return false;
                 }
             } catch (err) {
                 console.error("Cloud Write Error:", err);
+                alert(`⚠️ Cloud Write Error!\n\nMessage: ${err.message}\nYour browser might be blocking the connection because of strict browser extensions or adblockers.`);
+                return false;
             }
         }
 
@@ -1846,16 +1844,7 @@
             }
         }
 
-        function moveRank(index, direction) {
-            const oldRanks = [...state.ranks];
-            moveItemInArray(state.ranks, index, direction);
-            if (saveState()) {
-                renderAdminPanel();
-            } else {
-                state.ranks = oldRanks;
-            }
-        }
-
+        // Setup custom rank configurations
         function saveRanksConfiguration() {
             const title = document.getElementById('setup-rank-title').value;
             const capacity = parseInt(document.getElementById('setup-rank-capacity').value);
@@ -2014,8 +2003,10 @@
                 return;
             }
             if (confirm("This will overwrite whatever is stored on the Cloud with your current local screen database. Continue?")) {
-                await pushStateToCloud();
-                alert("Data pushed to the cloud database successfully.");
+                const success = await pushStateToCloud();
+                if (success) {
+                    alert("✅ Data pushed to the cloud database successfully!");
+                }
             }
         }
 
@@ -2025,8 +2016,10 @@
                 return;
             }
             if (confirm("This will overwrite your current local dashboard data with what is saved on the Cloud. Continue?")) {
-                await loadStateFromCloud();
-                alert("Data loaded from the cloud database successfully.");
+                const success = await loadStateFromCloud();
+                if (success) {
+                    alert("✅ Data loaded from the cloud database successfully!");
+                }
             }
         }
 
