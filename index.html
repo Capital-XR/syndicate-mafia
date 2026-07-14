@@ -614,9 +614,12 @@
                                     <input type="text" id="sync-header-val" placeholder="🔒 Secure Key Active" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white text-center">
                                 </div>
                             </div>
-                            <div class="flex items-center gap-2 pt-2">
+                            <div class="flex items-center gap-2 pt-2 text-xs">
                                 <input type="checkbox" id="sync-enabled-check" class="rounded border-purple-900 bg-black text-syndicate-500 h-4 w-4">
-                                <label for="sync-enabled-check" class="text-xs text-gray-300 font-semibold cursor-pointer">Enable Real-Time Cloud Synchronization</label>
+                                <label class="text-xs text-gray-300 font-semibold cursor-pointer" for="sync-enabled-check">Enable Real-Time Cloud Synchronization</label>
+                            </div>
+                            <div class="flex gap-2 pt-2">
+                                <button onclick="saveCloudSyncConfig()" class="flex-1 bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2.5 rounded text-xs uppercase tracking-wider">Save Config & Sync</button>
                             </div>
                         </div>
                     </div>
@@ -1031,13 +1034,14 @@
                     const response = await fetch(cleanUrl, { method: "GET", headers });
                     
                     if (response.status === 404) {
+                        // Empty fresh database handling
                         console.log("Cloud Database is currently empty.");
-                        renderWebsite();
+                        renderWebsite(); // Render current local screen details
                         if (statusIndicator) {
                             statusIndicator.innerHTML = `<i class="fas fa-cloud text-purple-400"></i> Cloud Ready`;
                             statusIndicator.className = "flex items-center gap-1.5 text-xs text-purple-400 font-semibold bg-purple-950/30 px-3 py-1 rounded border border-purple-900/30";
                         }
-                        return true;
+                        return true; // Exit successfully
                     }
 
                     if (response.ok) {
@@ -2225,249 +2229,6 @@
                 renderAdminPanel();
             } else {
                 state.documents.sopSections = oldSections;
-            }
-        }
-
-        /* 
-           ============= ROSTER SYSTEM INTERFACES =============
-        */
-        function renderRosterPanel() {
-            const rankSelect = document.getElementById('roster-member-rank');
-            rankSelect.innerHTML = state.ranks.map(r => `<option value="${r.id}">${r.title}</option>`).join('');
-            
-            updateDynamicIdentifierLimits();
-
-            // Cert Checklist
-            const certChecksContainer = document.getElementById('roster-certs-checks');
-            certChecksContainer.innerHTML = state.certs.map(c => `
-                <label class="flex items-center gap-2 text-gray-300">
-                    <input type="checkbox" name="roster-cert-item" value="${c}" class="rounded border-purple-900 bg-black text-syndicate-500">
-                    <span>${c}</span>
-                </label>
-            `).join('');
-
-            // Administration Lists organized by custom Category block order
-            const manageList = document.getElementById('roster-manage-list');
-            if(state.members.length === 0) {
-                manageList.innerHTML = `<div class="bg-black/20 p-8 rounded text-center text-xs text-gray-500 italic">Personnel Database is empty. Setup ranks and assign members.</div>`;
-                return;
-            }
-
-            manageList.innerHTML = state.categories.map(cat => {
-                const categoryRanks = state.ranks.filter(r => r.categoryId === cat.id);
-                if (categoryRanks.length === 0) return "";
-
-                return `
-                    <div class="bg-black/45 p-4 rounded-lg border border-purple-900/20 mb-6">
-                        <h4 class="text-xs text-syndicate-500 uppercase tracking-widest font-black mb-3 border-b border-purple-950/40 pb-1.5"><i class="fas fa-layer-group mr-1.5"></i>${cat.title}</h4>
-                        <div class="space-y-4">
-                            ${categoryRanks.map(rank => {
-                                const globalRankIdx = state.ranks.findIndex(r => r.id === rank.id);
-                                const rankMembers = state.members.filter(m => m.rankId === rank.id);
-                                const range = getRankRanges(globalRankIdx);
-
-                                return `
-                                    <div class="bg-black/20 p-3 rounded border border-purple-950/40">
-                                        <div class="flex justify-between items-center mb-2 pb-1 border-b border-purple-950/10">
-                                            <span class="font-bold text-white text-[11px] uppercase">${rank.title}</span>
-                                            <span class="text-[9px] text-gray-500 tracking-wider">Allocated Range: ${formatIdentifier(range.start)} - ${formatIdentifier(range.end)}</span>
-                                        </div>
-                                        <div class="space-y-1.5">
-                                            ${rankMembers.length === 0 ? `<span class="text-[10px] italic text-gray-600 block pl-2">No personnel.</span>` : rankMembers.map(m => {
-                                                return `
-                                                    <div class="bg-black/60 p-2.5 rounded border border-purple-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                                        <div>
-                                                            <div class="flex items-center gap-1.5">
-                                                                <span class="text-[9px] bg-purple-900 text-purple-200 px-1 py-0.2 rounded font-mono font-bold">${formatIdentifier(m.identifier)}</span>
-                                                                <span class="text-xs text-white font-bold">${m.name}</span>
-                                                                <span class="text-[9px] bg-emerald-950 text-emerald-400 px-1 rounded uppercase font-bold">${m.status}</span>
-                                                                ${m.strikes > 0 ? `<span class="text-[9px] bg-red-950 text-red-400 px-1 rounded font-bold">Strikes: ${m.strikes}</span>` : ''}
-                                                                ${m.warnings > 0 ? `<span class="text-[9px] bg-amber-950 text-amber-400 px-1 rounded font-bold">Warnings: ${m.warnings}</span>` : ''}
-                                                                ${m.blacklist ? `<span class="text-[9px] bg-red-600 text-white px-1 rounded font-bold">BLACKLIST</span>` : ''}
-                                                            </div>
-                                                            <span class="block text-[10px] text-gray-500 mt-0.5">Discord: ${m.discordId || 'N/A'} (ID: ${m.numericId || 'N/A'})</span>
-                                                        </div>
-                                                        <div class="flex gap-1.5">
-                                                            <button onclick="editRosterMember('${m.id}')" class="bg-purple-950 hover:bg-syndicate-500 px-2.5 py-1 text-[9px] uppercase font-bold rounded text-white transition-all"><i class="fas fa-edit"></i></button>
-                                                            <button onclick="deleteRosterMember('${m.id}')" class="bg-red-950/40 hover:bg-red-700 px-2.5 py-1 text-[9px] uppercase font-bold rounded text-red-200 transition-all"><i class="fas fa-trash"></i></button>
-                                                        </div>
-                                                    </div>
-                                                `;
-                                            }).join('')}
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        /* 
-           ============= ACTIONS: ROSTER DATABASE MANAGEMENT =============
-        */
-        function saveRosterMember() {
-            const memberId = document.getElementById('roster-edit-member-id').value;
-            const rankId = document.getElementById('roster-member-rank').value;
-            const identifier = parseInt(document.getElementById('roster-member-identifier').value);
-            const name = document.getElementById('roster-member-name').value;
-            const discordId = document.getElementById('roster-member-discord').value;
-            const numericId = document.getElementById('roster-member-numeric-id').value;
-            const joinDate = document.getElementById('roster-member-joindate').value;
-            const promoDate = document.getElementById('roster-member-promodate').value;
-            const status = document.getElementById('roster-member-status').value;
-
-            const warning = parseInt(document.getElementById('roster-punish-warning').value);
-            const strikeVal = document.getElementById('roster-punish-strike').value;
-            const notes = document.getElementById('roster-punish-notes').value;
-
-            if(!name || isNaN(identifier)) {
-                alert("Ensure Active Name & Active Identifier are completed.");
-                return;
-            }
-
-            const rankIndex = state.ranks.findIndex(r => r.id === rankId);
-            const targetRank = state.ranks[rankIndex];
-            const range = getRankRanges(rankIndex);
-            if(identifier < range.start || identifier > range.end) {
-                alert(`Identifier [${formatIdentifier(identifier)}] falls outside range limits allocated for this rank position (${formatIdentifier(range.start)} - ${formatIdentifier(range.end)})`);
-                return;
-            }
-
-            const matchingMember = state.members.find(m => m.identifier === identifier && m.id !== memberId);
-            if(matchingMember) {
-                alert(`Identifier ${formatIdentifier(identifier)} is already actively occupied by ${matchingMember.name}. Use another identifier slot.`);
-                return;
-            }
-
-            const checkedCerts = [];
-            document.querySelectorAll('input[name="roster-cert-item"]:checked').forEach(el => {
-                checkedCerts.push(el.value);
-            });
-
-            const isBlacklisted = (strikeVal === "Blacklisted");
-            const strikeNumber = isBlacklisted ? 2 : parseInt(strikeVal);
-
-            const record = {
-                id: memberId || 'm-' + Date.now(),
-                rankId,
-                identifier,
-                name,
-                discordId,
-                numericId,
-                joinDate,
-                promoDate,
-                status,
-                certs: checkedCerts,
-                warnings: warning,
-                strikes: strikeNumber,
-                blacklist: isBlacklisted,
-                notes
-            };
-
-            const isNew = !memberId;
-            let rosterActionStr = isNew ? "Added to active roster" : "Roster file updated";
-
-            if(!isNew) {
-                const oldRecord = state.members.find(m => m.id === memberId);
-                if(oldRecord && oldRecord.rankId !== rankId) {
-                    rosterActionStr = "Promoted / Transferred Rank";
-                }
-            }
-
-            const oldMembers = [...state.members];
-            if(memberId) {
-                const targetIdx = state.members.findIndex(m => m.id === memberId);
-                state.members[targetIdx] = record;
-            } else {
-                state.members.push(record);
-            }
-
-            if (saveState()) {
-                logRosterMovement(
-                    name, 
-                    rosterActionStr, 
-                    targetRank?.title, 
-                    identifier, 
-                    numericId, 
-                    notes
-                );
-                resetRosterForm();
-                renderRosterPanel();
-            } else {
-                state.members = oldMembers;
-            }
-        }
-
-        function editRosterMember(id) {
-            const member = state.members.find(m => m.id === id);
-            if(!member) return;
-
-            document.getElementById('roster-form-title').textContent = "Update Personnel File";
-            document.getElementById('roster-edit-member-id').value = member.id;
-            document.getElementById('roster-member-rank').value = member.rankId;
-            document.getElementById('roster-member-identifier').value = member.identifier;
-            document.getElementById('roster-member-name').value = member.name;
-            document.getElementById('roster-member-discord').value = member.discordId;
-            document.getElementById('roster-member-numeric-id').value = member.numericId || "";
-            document.getElementById('roster-member-joindate').value = member.joinDate;
-            document.getElementById('roster-member-promodate').value = member.promoDate;
-            document.getElementById('roster-member-status').value = member.status;
-
-            document.getElementById('roster-punish-warning').value = member.warnings || 0;
-            if(member.blacklist) {
-                document.getElementById('roster-punish-strike').value = "Blacklisted";
-            } else {
-                document.getElementById('roster-punish-strike').value = member.strikes || 0;
-            }
-            document.getElementById('roster-punish-notes').value = member.notes || "";
-
-            document.querySelectorAll('input[name="roster-cert-item"]').forEach(el => {
-                el.checked = member.certs ? member.certs.includes(el.value) : false;
-            });
-
-            document.getElementById('btn-cancel-roster-edit').classList.remove('hidden');
-            updateDynamicIdentifierLimits();
-        }
-
-        function resetRosterForm() {
-            document.getElementById('roster-form-title').textContent = "Assign Personnel to Roster";
-            document.getElementById('roster-edit-member-id').value = "";
-            document.getElementById('roster-member-identifier').value = "";
-            document.getElementById('roster-member-name').value = "";
-            document.getElementById('roster-member-discord').value = "";
-            document.getElementById('roster-member-numeric-id').value = "";
-            document.getElementById('roster-member-joindate').value = "";
-            document.getElementById('roster-member-promodate').value = "";
-            document.getElementById('roster-member-status').value = "Active";
-
-            document.getElementById('roster-punish-warning').value = "0";
-            document.getElementById('roster-punish-strike').value = "0";
-            document.getElementById('roster-punish-notes').value = "";
-
-            document.querySelectorAll('input[name="roster-cert-item"]').forEach(el => el.checked = false);
-            document.getElementById('btn-cancel-roster-edit').classList.add('hidden');
-        }
-
-        function deleteRosterMember(id) {
-            const target = state.members.find(m => m.id === id);
-            const targetRank = state.ranks.find(r => r.id === target?.rankId);
-            if(confirm("Confirm removal of member?")) {
-                const oldMembers = [...state.members];
-                state.members = state.members.filter(m => m.id !== id);
-                if (saveState()) {
-                    logRosterMovement(
-                        target?.name || "Unknown", 
-                        "Terminated / Removed from Gang Roster", 
-                        targetRank?.title || "N/A", 
-                        target?.identifier || 0, 
-                        target?.numericId || ""
-                    );
-                    renderRosterPanel();
-                } else {
-                    state.members = oldMembers;
-                }
             }
         }
 
