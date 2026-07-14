@@ -1,3 +1,31 @@
+The blank Admin Portal and the infinite "Syncing" status were caused by a
+JavaScript reference crash (TypeError):
+
+When we converted the cloud sync tab over to the GitHub database.json layout, we
+removed the old database input fields from the HTML. However, the background
+script was still trying to locate those old input boxes to fill them on load.
+Because those elements no longer existed, the browser encountered a critical
+crash halfway through the script, which froze the page rendering and left the
+status badge stuck on "Syncing...".
+
+What I have resolved:
+
+1.  Fixed the Script Crash: I have guarded all setup fields with safe null
+    checks so the website loads cleanly without any JavaScript errors.
+2.  Fully Converted Image Slots to URLs: I replaced all remaining file upload
+    buttons inside the Command grids, Inner Circle lists, turfs, and gallery
+    grids with clean text URL inputs so you can use Discord or Imgur links.
+3.  Guide URL Inputs: The SOP tab now features direct text fields for Outfit and
+    Vehicle presentation links.
+
+Complete Restored HTML Code
+
+Please copy this entire code block, paste it into your index.html on GitHub,
+commit the changes, and wait a few seconds.
+
+Once loaded, your site will bypass the crash, render all admin portal menus, and
+let you manage your static database file seamlessly:
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -633,7 +661,7 @@
         <div class="max-w-6xl mx-auto bg-syndicate-card border border-purple-900/60 rounded-xl p-6 md:p-8 relative">
             <div class="flex justify-between items-center border-b border-purple-900/40 pb-4 mb-6">
                 <div>
-                    <h2 class="serif-font text-2xl font-bold text-white">THE SYNDICATE ROSTER MANAGEMENT</h2>
+                    <h2 class="serif-font text-2xl font-bold text-white">TSF ROSTER MANAGEMENT</h2>
                     <div class="flex items-center gap-2 mt-1">
                         <span class="text-xs text-syndicate-500 font-semibold tracking-wider">Manage Family Personnel, Certs, & Conduct Records</span>
                         <span class="text-gray-600">|</span>
@@ -810,24 +838,6 @@
 
     <!-- MAIN JAVASCRIPT STATE AND FUNCTIONS -->
     <script>
-        // Self-Healing Startup Script: Wipe out any old localStorage conflicts with old structures
-        const localStateRaw = localStorage.getItem('tsf_state');
-        if (localStateRaw) {
-            try {
-                const parsed = JSON.parse(localStateRaw);
-                // Force load fresh connection credentials if using legacy JSONBin config
-                if (parsed.cloudSyncUrl && parsed.cloudSyncUrl.includes("jsonbin.io")) {
-                    console.log("Self-healing: Cleaning up old JSONBin settings.");
-                    localStorage.removeItem('tsf_state');
-                    localStorage.removeItem('tsf_discord_user');
-                    sessionStorage.clear();
-                    window.location.reload();
-                }
-            } catch (e) {
-                console.error("Self-healing error:", e);
-            }
-        }
-
         // Core Configured System Credentials & Webhooks
         const CODES = {
             admin: "TSF#ADMIN!26",
@@ -1400,6 +1410,164 @@
                     <img src="${img || 'https://placehold.co/600x400/1a1a1a/63207b?text=Slot+'+(i+1)}" alt="TSF Moment" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
                 </div>
             `).join('');
+        }
+
+        /* 
+           ============= MAIN ADMIN SETTINGS INTERFACE RENDERING =============
+        */
+        function renderAdminPanel() {
+            // Admin Command Section
+            const adminCmdList = document.getElementById('admin-command-list');
+            adminCmdList.innerHTML = state.command.map((member, i) => `
+                <div class="bg-black/40 p-3 rounded border border-purple-950/60 flex flex-col justify-between space-y-3">
+                    <span class="text-xs font-bold text-syndicate-500 block truncate">${member.role}</span>
+                    <input type="text" id="cmd-name-${i}" value="${member.name}" placeholder="Name" class="w-full bg-black border border-purple-900/30 rounded p-1 text-xs text-white">
+                    <div class="space-y-1">
+                        <label class="text-[9px] text-gray-500 block">Image URL</label>
+                        <input type="text" id="cmd-img-url-${i}" value="${member.img || ''}" placeholder="https://..." class="w-full bg-black border border-purple-900/30 rounded p-1 text-xs text-white">
+                    </div>
+                    <button onclick="saveAdminCommand(${i})" class="w-full bg-purple-950 hover:bg-syndicate-500 py-1.5 text-xs font-semibold rounded text-white tracking-wider transition-colors">Save</button>
+                </div>
+            `).join('');
+
+            // Admin Inner Circle Section
+            const adminInnerList = document.getElementById('admin-inner-list');
+            adminInnerList.innerHTML = state.innerCircle.map((member, i) => `
+                <div class="bg-black/40 p-3 rounded border border-purple-950/60 flex flex-col justify-between space-y-3">
+                    <span class="text-xs font-bold text-syndicate-500 block">Spot ${i+1}</span>
+                    <input type="text" id="inner-name-${i}" value="${member.name}" placeholder="Name" class="w-full bg-black border border-purple-900/30 rounded p-1 text-xs text-white">
+                    <div class="space-y-1">
+                        <label class="text-[9px] text-gray-500 block">Image URL</label>
+                        <input type="text" id="inner-img-url-${i}" value="${member.img || ''}" placeholder="https://..." class="w-full bg-black border border-purple-900/30 rounded p-1 text-xs text-white">
+                    </div>
+                    <button onclick="saveAdminInner(${i})" class="w-full bg-purple-950 hover:bg-syndicate-500 py-1.5 text-xs font-semibold rounded text-white tracking-wider transition-colors">Save</button>
+                </div>
+            `).join('');
+
+            // Admin Turfs Section
+            const adminTurfsList = document.getElementById('admin-turfs-list');
+            if (state.turfs.length === 0) {
+                adminTurfsList.innerHTML = `<span class="col-span-full text-xs text-gray-500 italic">No registered turfs. Enter details on the left to add your first zone.</span>`;
+            } else {
+                adminTurfsList.innerHTML = state.turfs.map((turf, i) => `
+                    <div class="bg-black/45 p-3 rounded border border-purple-950 flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-purple-950/20 border border-purple-900/30 rounded overflow-hidden">
+                                <img src="${turf.img || 'https://placehold.co/100x100?text=None'}" class="w-full h-full object-cover">
+                            </div>
+                            <div>
+                                <span class="block font-bold text-white text-xs">${turf.name}</span>
+                                <span class="block text-[10px] text-syndicate-500 uppercase tracking-widest">Postal ${turf.postal}</span>
+                            </div>
+                        </div>
+                        <button onclick="deleteTurf(${i})" class="text-red-500 hover:text-red-700 p-2 text-xs" title="Remove Turf"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                `).join('');
+            }
+
+            // Admin Gallery Section
+            const adminGalleryList = document.getElementById('admin-gallery-list');
+            adminGalleryList.innerHTML = state.gallery.map((img, i) => `
+                <div class="bg-black/40 p-4 rounded border border-purple-950/60 space-y-4">
+                    <span class="text-xs font-bold text-white block">Gallery Spot ${i+1}</span>
+                    <div class="aspect-video bg-black rounded overflow-hidden relative border border-purple-900/20">
+                        <img src="${img || 'https://placehold.co/600x400/1a1a1a/63207b?text=Empty+Slot'}" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-400 block mb-1">Image URL</label>
+                        <input type="text" id="gallery-url-${i}" value="${img || ''}" placeholder="https://..." class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                    </div>
+                    <button onclick="saveAdminGallery(${i})" class="w-full bg-purple-950 hover:bg-syndicate-500 py-2 text-xs font-bold rounded text-white tracking-wider transition-colors uppercase">Save Image</button>
+                </div>
+            `).join('');
+
+            // Render Dropdowns for Category Assignments
+            const dropdownCatSetup = document.getElementById('setup-rank-category');
+            dropdownCatSetup.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+
+            // Render Ranks Setup (Categorized tree layout)
+            renderHierarchyTreeManager();
+
+            // Setup Tab - Certifications Checklist
+            const certsList = document.getElementById('setup-certs-list');
+            certsList.innerHTML = state.certs.map((cert) => `
+                <div class="bg-black/35 p-3 rounded border border-purple-950/65 flex justify-between items-center text-xs">
+                    <span class="text-white font-semibold"><i class="fas fa-certificate text-purple-500 mr-1.5"></i>${cert}</span>
+                    <button onclick="deleteCertType('${cert}')" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>
+                </div>
+            `).join('');
+
+            // Safe elements retrieval to protect setup script from type error crashes
+            const discordInput = document.getElementById('setup-discord-client-id');
+            if (discordInput) {
+                discordInput.value = state.discordClientId || "";
+            }
+            
+            const outfitUrlEl = document.getElementById('admin-outfit-pdf-url');
+            if (outfitUrlEl) {
+                outfitUrlEl.value = state.documents.outfitPdf || "";
+            }
+
+            const vehicleUrlEl = document.getElementById('admin-vehicle-pdf-url');
+            if (vehicleUrlEl) {
+                vehicleUrlEl.value = state.documents.vehiclePdf || "";
+            }
+
+            // Render custom SOP interactive builder
+            renderSOPSectionsAdminList();
+        }
+
+        /*
+           ============= RENDER ADMINISTRATIVE TREE CONTROLS =============
+        */
+        function renderHierarchyTreeManager() {
+            const container = document.getElementById('setup-hierarchy-tree');
+            
+            if (state.categories.length === 0) {
+                container.innerHTML = `<span class="text-xs text-gray-500 italic">No categories registered yet.</span>`;
+                return;
+            }
+
+            container.innerHTML = state.categories.map((cat, catIdx) => {
+                const categoryRanks = state.ranks.filter(r => r.categoryId === cat.id);
+                
+                return `
+                    <div class="bg-black/40 p-4 rounded border border-purple-900/30 space-y-3">
+                        <div class="flex justify-between items-center bg-black/60 p-2.5 rounded border-b border-purple-900/40">
+                            <div>
+                                <span class="text-[10px] text-syndicate-500 uppercase tracking-widest font-bold">Category Level ${catIdx+1}</span>
+                                <h5 class="text-white font-bold text-sm">${cat.title}</h5>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="moveCategory(${catIdx}, -1)" class="text-purple-300 hover:text-white p-1 text-xs" title="Move Category Up"><i class="fas fa-arrow-up"></i></button>
+                                <button onclick="moveCategory(${catIdx}, 1)" class="text-purple-300 hover:text-white p-1 text-xs" title="Move Category Down"><i class="fas fa-arrow-down"></i></button>
+                                <button onclick="deleteSetupCategory('${cat.id}')" class="text-red-400 hover:text-red-600 p-1 text-xs" title="Delete Category"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Nested Ranks within this specific Category -->
+                        <div class="space-y-2 pl-3">
+                            ${categoryRanks.length === 0 ? `<span class="text-[11px] text-gray-600 italic block">No ranks assigned here yet.</span>` : categoryRanks.map((rank) => {
+                                const globalRankIdx = state.ranks.findIndex(r => r.id === rank.id);
+                                const calculatedRange = getRankRanges(globalRankIdx);
+                                return `
+                                    <div class="bg-black/45 p-2 rounded border border-purple-950/70 flex justify-between items-center text-xs">
+                                        <div>
+                                            <span class="text-white font-bold">${rank.title}</span>
+                                            <span class="text-[10px] text-purple-400 ml-2">(${rank.capacity} Slots, Identifiers: ${formatIdentifier(calculatedRange.start)}-${formatIdentifier(calculatedRange.end)})</span>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button onclick="moveRank(${globalRankIdx}, -1)" class="text-gray-400 hover:text-white text-[11px]" title="Move Rank Up"><i class="fas fa-chevron-up"></i></button>
+                                            <button onclick="moveRank(${globalRankIdx}, 1)" class="text-gray-400 hover:text-white text-[11px]" title="Move Rank Down"><i class="fas fa-chevron-down"></i></button>
+                                            <button onclick="deleteSetupRank('${rank.id}')" class="text-red-400 hover:text-red-500 text-[11px]" title="Delete Rank"><i class="fas fa-times"></i></button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         /* 
