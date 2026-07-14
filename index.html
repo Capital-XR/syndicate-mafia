@@ -349,7 +349,7 @@
         </div>
     </div>
 
-    <!-- MAIN ADMIN PORTAL MODAL -->
+    <!-- MAIN ADMIN INTERACTIVE PORTAL MODAL -->
     <div id="admin-portal" class="fixed inset-0 bg-black/95 overflow-y-auto hidden z-50 p-4 md:p-8">
         <div class="max-w-6xl mx-auto bg-syndicate-card border border-purple-900/60 rounded-xl p-6 md:p-8 relative">
             <div class="flex justify-between items-center border-b border-purple-900/40 pb-4 mb-6">
@@ -360,7 +360,7 @@
                         <span class="text-gray-600 hidden sm:inline">|</span>
                         <div id="admin-logged-user-display" class="flex items-center gap-1.5 text-xs text-purple-400 mr-2"></div>
                         <span class="text-gray-600 hidden sm:inline">|</span>
-                        <div id="active-db-display-label" class="text-[10px] text-purple-400 bg-purple-950/20 border border-purple-900/35 px-2 py-0.5 rounded font-mono font-bold">DATABASE: KVdb Cloud Sync Enabled</div>
+                        <div id="active-db-display-label" class="text-[10px] text-purple-400 bg-purple-950/20 border border-purple-900/35 px-2 py-0.5 rounded font-mono font-bold">DATABASE: KVdb Cloud Sync Active</div>
                     </div>
                 </div>
                 <button onclick="closeAdminPortal()" class="bg-red-950/40 hover:bg-red-800 text-white px-4 py-2 rounded text-xs uppercase tracking-wider font-bold transition-colors">
@@ -923,7 +923,7 @@
                 vehiclePdf: ""
             },
             discordClientId: "",
-            // Hardcoded cloud database properties directly in the website code (CORS preflight bypassed)
+            // Hardcode your cloud database properties directly in the website code (CORS preflight bypassed)
             cloudSyncUrl: "https://kvdb.io/Db9q9z4t3H3GaZa63bAdkt/tsf_state",
             cloudSyncHeaderKey: "",
             cloudSyncHeaderVal: "",
@@ -1238,6 +1238,11 @@
         function closeDiscordAuthModal() {
             document.getElementById('discord-auth-modal').classList.remove('flex');
             document.getElementById('discord-auth-modal').classList.add('hidden');
+        }
+
+        // Safe elements retrieval to protect setup script from reference crashes
+        function updateDatabaseCodeField() {
+            // Unused in KVdb direct cloud sync, but kept clean to prevent errors
         }
 
         function saveFailsafeClientId() {
@@ -2007,6 +2012,600 @@
             document.getElementById('btn-cancel-sop-edit').classList.add('hidden');
         }
 
+        // Safe elements retrieval to protect setup script from reference crashes
+        function updateDatabaseCodeField() {
+            // Unused in KVdb direct cloud sync, but kept clean to prevent errors
+        }
+
+        function saveFailsafeClientId() {
+            const val = document.getElementById('failsafe-discord-client-id').value.trim();
+            if (!val) {
+                alert("Please enter a valid Client ID.");
+                return;
+            }
+            state.discordClientId = val;
+            if (saveState()) {
+                alert("Client ID saved. You can now use the Discord OAuth authentication flow.");
+                openDiscordAuthModal();
+            }
+        }
+
+        function triggerDiscordOAuthRedirect() {
+            const clientId = state.discordClientId || DEFAULT_STATE.discordClientId;
+            if(!clientId) {
+                alert("No Discord OAuth Client ID configured. Please configure it inside the setup container.");
+                return;
+            }
+
+            const redirectUri = encodeURIComponent(window.location.href.split('#')[0]);
+            const scopes = "identify";
+            const responseType = "token";
+            const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scopes}`;
+            
+            window.location.href = authUrl;
+        }
+
+        function checkDiscordOAuthHash() {
+            const fragment = window.location.hash;
+            if(fragment && fragment.includes("access_token=")) {
+                const params = new URLSearchParams(fragment.substring(1));
+                const accessToken = params.get("access_token");
+
+                fetch("https://discord.com/api/users/@me", {
+                    headers: { "Authorization": `Bearer ${accessToken}` }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.id) {
+                        currentUser = {
+                            username: `${data.username}`,
+                            id: data.id,
+                            avatar: data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png` : ""
+                        };
+                        sessionStorage.setItem('tsf_discord_user', JSON.stringify(currentUser));
+                        window.history.replaceState(null, null, window.location.pathname);
+                        logAdminAction("Admin OAuth Login Success", `Authenticated through Discord OAuth Application`);
+                        
+                        if (activePortalMode === "admin") {
+                            openAdminPortal();
+                        } else if (activePortalMode === "roster") {
+                            openRosterPortal();
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error("OAuth Profile Lookup Failed:", err);
+                });
+            }
+        }
+
+        function openAccessCodeModal(mode) {
+            activePortalMode = mode;
+            document.getElementById('access-code-input').value = "";
+            const titleEl = document.getElementById('login-modal-title');
+            const descEl = document.getElementById('login-modal-desc');
+
+            if(mode === "admin") {
+                titleEl.textContent = "Admin Portal Access";
+                descEl.textContent = "Access authorization panel for settings, maps, and command configuration.";
+            } else {
+                titleEl.textContent = "Roster Administration";
+                descEl.textContent = "Authorized management only. Input roster security clearance.";
+            }
+
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('login-modal').classList.add('flex');
+        }
+
+        function closeAccessCodeModal() {
+            document.getElementById('login-modal').classList.remove('flex');
+            document.getElementById('login-modal').classList.add('hidden');
+        }
+
+        function verifyAccessCode() {
+            const code = document.getElementById('access-code-input').value;
+            if(activePortalMode === "admin" && code === CODES.admin) {
+                closeAccessCodeModal();
+                requireDiscordSession(openAdminPortal);
+            } else if(activePortalMode === "roster" && code === CODES.roster) {
+                closeAccessCodeModal();
+                requireDiscordSession(openRosterPortal);
+            } else {
+                alert("Unauthorized clearance code.");
+            }
+        }
+
+        function openAdminPortal() {
+            document.getElementById('admin-portal').classList.remove('hidden');
+            document.getElementById('admin-logged-user-display').innerHTML = `
+                <i class="fab fa-discord"></i> Logged in: <strong>${currentUser.username}</strong>
+            `;
+            renderAdminPanel();
+        }
+        function closeAdminPortal() {
+            document.getElementById('admin-portal').classList.add('hidden');
+        }
+        function openRosterPortal() {
+            document.getElementById('roster-portal').classList.remove('hidden');
+            document.getElementById('roster-logged-user-display').innerHTML = `
+                <i class="fab fa-discord"></i> Logged in: <strong>${currentUser.username}</strong>
+            `;
+            renderRosterPanel();
+        }
+        function closeRosterPortal() {
+            document.getElementById('roster-portal').classList.add('hidden');
+        }
+
+        function switchTab(portalPrefix, tabId) {
+            document.querySelectorAll(`.${portalPrefix}-tab-content`).forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            document.querySelectorAll(`.${portalPrefix}-tab-btn`).forEach(btn => {
+                btn.classList.remove('bg-syndicate-500', 'text-white');
+                btn.classList.add('bg-black/45', 'text-gray-400');
+            });
+            document.getElementById('btn-' + portalPrefix + '-' + tabId).classList.remove('bg-black/45', 'text-gray-400');
+            document.getElementById('btn-' + portalPrefix + '-' + tabId).classList.add('bg-syndicate-500', 'text-white');
+        }
+
+        function getRankRanges(rankIndex) {
+            let offset = 1;
+            for(let i=0; i < state.ranks.length; i++) {
+                let start = offset;
+                let end = offset + state.ranks[i].capacity - 1;
+                if(i === rankIndex) {
+                    return { start, end };
+                }
+                offset = end + 1;
+            }
+            return { start: 1, end: 100 };
+        }
+
+        function formatIdentifier(num) {
+            return String(num).padStart(2, '0');
+        }
+
+        function updateDynamicIdentifierLimits() {
+            const selectEl = document.getElementById('roster-member-rank');
+            const targetRankId = selectEl.value;
+            if(!targetRankId) return;
+            const rankIndex = state.ranks.findIndex(r => r.id === targetRankId);
+            const range = getRankRanges(rankIndex);
+            
+            document.getElementById('dynamic-rank-range').textContent = `${formatIdentifier(range.start)} - ${formatIdentifier(range.end)}`;
+            const inputEl = document.getElementById('roster-member-identifier');
+            inputEl.min = range.start;
+            inputEl.max = range.end;
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            if(menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                icon.className = "fas fa-times";
+            } else {
+                menu.classList.add('hidden');
+                icon.className = "fas fa-bars";
+            }
+        }
+
+        /* 
+           ============= PUBLIC WEBSITE VIEWS RENDERING =============
+        */
+        function renderWebsite() {
+            // Render Live Cloud Sync Badge status in header
+            const statusIndicator = document.getElementById('cloud-sync-status');
+            if (statusIndicator) {
+                if (state.cloudSyncUrl && state.cloudSyncEnabled) {
+                    statusIndicator.classList.remove('hidden');
+                    statusIndicator.classList.add('flex');
+                    statusIndicator.innerHTML = `<i class="fas fa-cloud text-emerald-400"></i> Cloud Active`;
+                    statusIndicator.className = "flex items-center gap-1.5 text-[10px] text-emerald-400 font-semibold bg-emerald-950/30 px-3 py-1 rounded border border-emerald-900/30 mr-1";
+                } else {
+                    statusIndicator.classList.add('hidden');
+                    statusIndicator.classList.remove('flex');
+                }
+            }
+
+            // Render Command Panel
+            const commandGrid = document.getElementById('command-grid');
+            commandGrid.innerHTML = state.command.map((member, i) => `
+                <div class="bg-black/55 border border-purple-900/20 hover:border-syndicate-500/55 p-4 rounded text-center transition-all group">
+                    <div class="w-24 h-24 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-syndicate-500">
+                        <img src="${member.img || 'https://placehold.co/150x150/1a1a1a/63207b?text=TSF'}" alt="${member.role}" class="w-full h-full object-cover">
+                    </div>
+                    <span class="block text-xs uppercase tracking-widest text-syndicate-500 font-bold mb-1">${member.role}</span>
+                    <span class="block font-semibold text-white tracking-wide">${member.name || 'Vacant'}</span>
+                </div>
+            `).join('');
+
+            // Render Inner Circle
+            const innerGrid = document.getElementById('inner-circle-grid');
+            innerGrid.innerHTML = state.innerCircle.map((member, i) => `
+                <div class="bg-black/55 border border-purple-900/20 hover:border-syndicate-500/55 p-4 rounded text-center transition-all group">
+                    <div class="w-20 h-20 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-syndicate-500">
+                        <img src="${member.img || 'https://placehold.co/150x150/1a1a1a/63207b?text=TSF'}" alt="Inner Circle" class="w-full h-full object-cover">
+                    </div>
+                    <span class="block text-xs uppercase tracking-widest text-syndicate-500 font-bold mb-1">Inner Circle</span>
+                    <span class="block font-semibold text-white tracking-wide">${member.name || 'Vacant'}</span>
+                </div>
+            `).join('');
+
+            // Render Turfs
+            const turfsGrid = document.getElementById('turfs-grid');
+            if (state.turfs.length === 0) {
+                turfsGrid.innerHTML = `<div class="col-span-full text-center text-xs text-gray-500 py-8 italic">No safe zones currently registered.</div>`;
+            } else {
+                turfsGrid.innerHTML = state.turfs.map((turf) => `
+                    <div class="bg-black/55 border border-purple-900/20 hover:border-syndicate-500/55 rounded-lg overflow-hidden transition-all flex flex-col justify-between">
+                        <div class="h-40 bg-purple-950/20 overflow-hidden relative border-b border-purple-950/40">
+                            <img src="${turf.img || 'https://placehold.co/400x250/1a1a1a/63207b?text=TSF+TURF'}" alt="${turf.name}" class="w-full h-full object-cover">
+                            <span class="absolute top-2 right-2 bg-syndicate-500 text-white font-bold text-[10px] px-2 py-0.5 rounded tracking-wide">POSTAL ${turf.postal}</span>
+                        </div>
+                        <div class="p-4 text-center">
+                            <span class="serif-font font-bold text-white text-sm tracking-wider uppercase block">${turf.name}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Render Gallery
+            const galleryGrid = document.getElementById('gallery-grid');
+            galleryGrid.innerHTML = state.gallery.map((img, i) => `
+                <div class="aspect-video bg-black/55 border border-purple-900/20 rounded overflow-hidden relative group">
+                    <img src="${img || 'https://placehold.co/600x400/1a1a1a/63207b?text=Slot+'+(i+1)}" alt="TSF Moment" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                </div>
+            `).join('');
+        }
+
+        /* 
+           ============= ACTIONS: PORTAL ADMINISTRATION SETTINGS =============
+        */
+        function saveAdminCommand(index) {
+            const name = document.getElementById(`cmd-name-${index}`).value;
+            const urlInput = document.getElementById(`cmd-img-url-${index}`);
+            state.command[index].name = name;
+            state.command[index].img = urlInput.value.trim();
+
+            if (saveState()) {
+                logAdminAction("Command Roster Spot Modified", `Assigned slot ${index+1} (**${state.command[index].role}**) to **${name}**`);
+                alert(" Roster spot saved locally. Roster modifications will automatically synchronize with your cloud database!");
+            }
+        }
+
+        function saveAdminInner(index) {
+            const name = document.getElementById(`inner-name-${index}`).value;
+            const urlInput = document.getElementById(`inner-img-url-${index}`);
+            state.innerCircle[index].name = name;
+            state.innerCircle[index].img = urlInput.value.trim();
+
+            if (saveState()) {
+                logAdminAction("Inner Circle Spot Modified", `Assigned slot ${index+1} to **${name}**`);
+                alert("Inner Circle spot saved locally. Roster modifications will automatically synchronize with your cloud database!");
+            }
+        }
+
+        function addNewTurf() {
+            const name = document.getElementById('turf-name-input').value.trim();
+            const postal = document.getElementById('turf-postal-input').value.trim();
+            const urlInput = document.getElementById('turf-img-url-input');
+
+            if(!name || !postal) {
+                alert("Provide active Turf name & Postal zones.");
+                return;
+            }
+
+            const newTurf = { name, postal, img: urlInput.value.trim() };
+            state.turfs.push(newTurf);
+            if (saveState()) {
+                logAdminAction("Gang Territory Added", `Claimed control of **${name}** (Postal ${postal})`);
+                document.getElementById('turf-name-input').value = "";
+                document.getElementById('turf-postal-input').value = "";
+                document.getElementById('turf-img-url-input').value = "";
+                renderAdminPanel();
+            } else {
+                state.turfs.pop();
+            }
+        }
+
+        function deleteTurf(index) {
+            const target = state.turfs[index];
+            if(confirm("Confirm removing Turf?")) {
+                state.turfs.splice(index, 1);
+                if (saveState()) {
+                    logAdminAction("Gang Territory Released", `Released territorial claim for **${target.name}** (Postal ${target.postal})`);
+                    renderAdminPanel();
+                    alert("Turf deleted locally. Roster modifications will automatically synchronize with your cloud database!");
+                } else {
+                    state.turfs.splice(index, 0, target);
+                }
+            }
+        }
+
+        function saveAdminGallery(index) {
+            const urlInput = document.getElementById(`gallery-url-${index}`);
+            const val = urlInput.value.trim();
+            if (val) {
+                const oldImg = state.gallery[index];
+                state.gallery[index] = val;
+                if (saveState()) {
+                    logAdminAction("Archive Gallery Modified", `Uploaded fresh image snapshot for Gallery Slot ${index+1}`);
+                    renderAdminPanel();
+                    alert("Gallery image saved locally. Roster modifications will automatically synchronize with your cloud database!");
+                } else {
+                    state.gallery[index] = oldImg;
+                }
+            } else {
+                alert("Please paste a valid image URL first.");
+            }
+        }
+
+        function saveDiscordClientId() {
+            const val = document.getElementById('setup-discord-client-id').value;
+            const oldId = state.discordClientId;
+            state.discordClientId = val;
+            if (saveState()) {
+                logAdminAction("OAuth Client ID Configuration Modified", `OAuth authorization scope endpoint adjusted`);
+                alert("Discord Application Client configuration applied.");
+            } else {
+                state.discordClientId = oldId;
+            }
+        }
+
+        function saveCategoryConfiguration() {
+            const title = document.getElementById('setup-category-title').value;
+            if(!title) return;
+
+            const newCat = { id: 'cat-' + Date.now(), title };
+            state.categories.push(newCat);
+            if (saveState()) {
+                logAdminAction("Category Level Created", `Registered operational rank category **${title}**`);
+                renderAdminPanel();
+                document.getElementById('setup-category-title').value = "";
+                alert("Category saved locally. Roster modifications will automatically synchronize with your cloud database!");
+            } else {
+                state.categories.pop();
+            }
+        }
+
+        function deleteSetupCategory(id) {
+            if(confirm("Deleting this category will orphan its ranks. Ranks will move to the first category. Proceed?")) {
+                const targetIdx = state.categories.findIndex(c => c.id === id);
+                if (state.categories.length <= 1) {
+                    alert("Must retain at least one operational hierarchy category.");
+                    return;
+                }
+                const oldCategories = [...state.categories];
+                const oldRanks = JSON.parse(JSON.stringify(state.ranks));
+
+                const fallbackCatId = state.categories.find(c => c.id !== id).id;
+                state.ranks.forEach(r => {
+                    if (r.categoryId === id) r.categoryId = fallbackCatId;
+                });
+                state.categories = state.categories.filter(c => c.id !== id);
+
+                if (saveState()) {
+                    logAdminAction("Category Level Deleted", `Removed category and migrated child ranks.`);
+                    renderAdminPanel();
+                    alert("Category deleted locally. Roster modifications will automatically synchronize with your cloud database!");
+                } else {
+                    state.categories = oldCategories;
+                    state.ranks = oldRanks;
+                }
+            }
+        }
+
+        function moveCategory(index, direction) {
+            const oldCategories = [...state.categories];
+            moveItemInArray(state.categories, index, direction);
+            if (saveState()) {
+                renderAdminPanel();
+            } else {
+                state.categories = oldCategories;
+            }
+        }
+
+        function moveRank(index, direction) {
+            const oldRanks = [...state.ranks];
+            moveItemInArray(state.ranks, index, direction);
+            if (saveState()) {
+                renderAdminPanel();
+            } else {
+                state.ranks = oldRanks;
+            }
+        }
+
+        function saveRanksConfiguration() {
+            const title = document.getElementById('setup-rank-title').value;
+            const capacity = parseInt(document.getElementById('setup-rank-capacity').value);
+            const categoryId = document.getElementById('setup-rank-category').value;
+
+            if(!title || isNaN(capacity) || capacity < 1 || !categoryId) {
+                alert("Verify Rank Details format and ensure a category is selected.");
+                return;
+            }
+
+            const newRank = { id: 'r-' + Date.now(), title, capacity, categoryId };
+            state.ranks.push(newRank);
+            if (saveState()) {
+                logAdminAction("Roster Rank Registered", `Registered **${title}** inside selected category with identifier pool of ${capacity} slots`);
+                renderAdminPanel();
+                document.getElementById('setup-rank-title').value = "";
+                document.getElementById('setup-rank-capacity').value = "";
+                alert("Rank saved locally. Roster modifications will automatically synchronize with your cloud database!");
+            } else {
+                state.ranks.pop();
+            }
+        }
+
+        function deleteSetupRank(id) {
+            const targetRank = state.ranks.find(r => r.id === id);
+            if(confirm("Confirm drop of rank?")) {
+                const oldRanks = [...state.ranks];
+                const oldMembers = [...state.members];
+
+                state.ranks = state.ranks.filter(r => r.id !== id);
+                state.members = state.members.filter(m => m.rankId !== id); 
+
+                if (saveState()) {
+                    logAdminAction("Roster Rank Deleted", `Permanently dropped **${targetRank?.title}** from system databases`);
+                    renderAdminPanel();
+                    alert("Rank deleted locally. Roster modifications will automatically synchronize with your cloud database!");
+                } else {
+                    state.ranks = oldRanks;
+                    state.members = oldMembers;
+                }
+            }
+        }
+
+        function addNewCertType() {
+            const name = document.getElementById('setup-cert-name').value;
+            if(!name) return;
+
+            if(!state.certs.includes(name)) {
+                state.certs.push(name);
+                if (saveState()) {
+                    logAdminAction("Operational Credential Created", `Registered operational specialty certificate **${name}**`);
+                    renderAdminPanel();
+                    document.getElementById('setup-cert-name').value = "";
+                    alert("Specialty certificate saved locally. Roster modifications will automatically synchronize with your cloud database!");
+                } else {
+                    state.certs.pop();
+                }
+            }
+        }
+
+        function deleteCertType(name) {
+            if(confirm("Delete this qualification category?")) {
+                const oldCerts = [...state.certs];
+                state.certs = state.certs.filter(c => c !== name);
+                if (saveState()) {
+                    logAdminAction("Operational Credential Discarded", `Dropped specialty certification category **${name}**`);
+                    renderAdminPanel();
+                    alert("Specialty certificate deleted locally. Roster modifications will automatically synchronize with your cloud database!");
+                } else {
+                    state.certs = oldCerts;
+                }
+            }
+        }
+
+        function saveGuidesPDFUrl() {
+            const outfitUrl = document.getElementById('admin-outfit-pdf-url').value.trim();
+            const vehicleUrl = document.getElementById('admin-vehicle-pdf-url').value.trim();
+
+            state.documents.outfitPdf = outfitUrl;
+            state.documents.vehiclePdf = vehicleUrl;
+
+            if (saveState()) {
+                logAdminAction("Policy PDF URLs Updated", `Adjusted fleet configurations and uniform links`);
+                alert("Guide Links saved locally. Roster modifications will automatically synchronize with your cloud database!");
+            }
+        }
+
+        /* 
+           ============= ACTIONS: SOP SECTIONS BUILDER =============
+        */
+        function renderSOPSectionsAdminList() {
+            const container = document.getElementById('setup-sop-sections-list');
+            if (!container) return;
+            
+            if (!state.documents.sopSections || state.documents.sopSections.length === 0) {
+                container.innerHTML = `<span class="text-xs text-gray-500 italic">No SOP Sections registered. Add your first section above.</span>`;
+                return;
+            }
+
+            container.innerHTML = state.documents.sopSections.map((sec, i) => `
+                <div class="bg-black/45 p-3.5 rounded border border-purple-950 flex justify-between items-start gap-4">
+                    <div class="space-y-1 truncate">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded font-mono font-bold">${sec.num}</span>
+                            <span class="text-sm font-bold text-white">${sec.title}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-400 truncate max-w-xl leading-normal">${sec.text}</p>
+                        ${sec.btnLabel ? `
+                            <div class="text-[10px] text-purple-400 font-semibold flex items-center gap-1.5 mt-1">
+                                <i class="fas fa-link"></i> Action Button: <span class="bg-purple-950/60 px-1.5 py-0.5 rounded text-[9px] text-purple-200">${sec.btnLabel} (${sec.btnUrl})</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                        <button onclick="moveSOPSection(${i}, -1)" class="text-gray-400 hover:text-white text-xs p-1" title="Move Up"><i class="fas fa-chevron-up"></i></button>
+                        <button onclick="moveSOPSection(${i}, 1)" class="text-gray-400 hover:text-white text-xs p-1" title="Move Down"><i class="fas fa-chevron-down"></i></button>
+                        <button onclick="editSOPSection('${sec.id}')" class="text-purple-400 hover:text-purple-300 text-xs p-1" title="Edit"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteSOPSection('${sec.id}')" class="text-red-400 hover:text-red-600 text-xs p-1" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveSOPSection() {
+            const secId = document.getElementById('sop-edit-section-id').value;
+            const num = document.getElementById('sop-section-num').value.trim();
+            const title = document.getElementById('sop-section-title').value.trim();
+            const text = document.getElementById('sop-section-text').value.trim();
+            const btnLabel = document.getElementById('sop-section-btnlabel').value.trim();
+            const btnUrl = document.getElementById('sop-section-btnurl').value.trim();
+
+            if (!num || !title || !text) {
+                alert("Provide Section Code, Title, and text content.");
+                return;
+            }
+
+            const record = {
+                id: secId || 'sec-' + Date.now(),
+                num,
+                title,
+                text,
+                btnLabel,
+                btnUrl
+            };
+
+            const oldSections = [...state.documents.sopSections];
+            if (secId) {
+                const targetIdx = state.documents.sopSections.findIndex(s => s.id === secId);
+                state.documents.sopSections[targetIdx] = record;
+            } else {
+                state.documents.sopSections.push(record);
+            }
+
+            if (saveState()) {
+                logAdminAction(secId ? "SOP Section Updated" : "SOP Section Created", `Saved SOP Section **${num} - ${title}**`);
+                resetSOPSectionForm();
+                renderAdminPanel();
+                alert("SOP section saved locally. Roster modifications will automatically synchronize with your cloud database!");
+            } else {
+                state.documents.sopSections = oldSections;
+            }
+        }
+
+        function editSOPSection(id) {
+            const sec = state.documents.sopSections.find(s => s.id === id);
+            if (!sec) return;
+
+            document.getElementById('sop-form-title').textContent = "Update SOP Section";
+            document.getElementById('sop-edit-section-id').value = sec.id;
+            document.getElementById('sop-section-num').value = sec.num;
+            document.getElementById('sop-section-title').value = sec.title;
+            document.getElementById('sop-section-text').value = sec.text;
+            document.getElementById('sop-section-btnlabel').value = sec.btnLabel || "";
+            document.getElementById('sop-section-btnurl').value = sec.btnUrl || "";
+
+            document.getElementById('btn-cancel-sop-edit').classList.remove('hidden');
+        }
+
+        function resetSOPSectionForm() {
+            document.getElementById('sop-form-title').textContent = "Create / Edit SOP Section";
+            document.getElementById('sop-edit-section-id').value = "";
+            document.getElementById('sop-section-num').value = "";
+            document.getElementById('sop-section-title').value = "";
+            document.getElementById('sop-section-text').value = "";
+            document.getElementById('sop-section-btnlabel').value = "";
+            document.getElementById('sop-section-btnurl').value = "";
+
+            document.getElementById('btn-cancel-sop-edit').classList.add('hidden');
+        }
+
         function deleteSOPSection(id) {
             const sec = state.documents.sopSections.find(s => s.id === id);
             if (confirm("Confirm deleting this SOP Section?")) {
@@ -2457,7 +3056,7 @@
                         <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2 whitespace-pre-line">${sec.text}</p>
                         ${sec.btnLabel && sec.btnUrl ? `
                             <a href="${sec.btnUrl}" target="_blank" class="inline-flex items-center gap-1.5 mt-3 bg-purple-950 hover:bg-syndicate-500 text-white font-bold text-[10px] px-3 py-1.5 rounded transition-all uppercase">
-                                <i class="fas fa-external-link-alt"></i> ${sec.btnLabel}
+                                <i class="fas fa-external-link-alt text-[9px]"></i> ${sec.btnLabel}
                             </a>
                         ` : ''}
                     </div>
