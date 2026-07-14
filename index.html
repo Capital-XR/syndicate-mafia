@@ -349,7 +349,7 @@
         </div>
     </div>
 
-    <!-- MAIN ADMIN INTERACTIVE PORTAL MODAL -->
+    <!-- MAIN ADMIN PORTAL MODAL -->
     <div id="admin-portal" class="fixed inset-0 bg-black/95 overflow-y-auto hidden z-50 p-4 md:p-8">
         <div class="max-w-6xl mx-auto bg-syndicate-card border border-purple-900/60 rounded-xl p-6 md:p-8 relative">
             <div class="flex justify-between items-center border-b border-purple-900/40 pb-4 mb-6">
@@ -360,7 +360,7 @@
                         <span class="text-gray-600 hidden sm:inline">|</span>
                         <div id="admin-logged-user-display" class="flex items-center gap-1.5 text-xs text-purple-400 mr-2"></div>
                         <span class="text-gray-600 hidden sm:inline">|</span>
-                        <div id="active-db-display-label" class="text-[10px] text-purple-400 bg-purple-950/20 border border-purple-900/35 px-2 py-0.5 rounded font-mono font-bold">DATABASE: KVdb Cloud Storage Active</div>
+                        <div id="active-db-display-label" class="text-[10px] text-purple-400 bg-purple-950/20 border border-purple-900/35 px-2 py-0.5 rounded font-mono font-bold">DATABASE: KVdb Cloud Sync Enabled</div>
                     </div>
                 </div>
                 <button onclick="closeAdminPortal()" class="bg-red-950/40 hover:bg-red-800 text-white px-4 py-2 rounded text-xs uppercase tracking-wider font-bold transition-colors">
@@ -372,7 +372,7 @@
             <div class="flex gap-2 overflow-x-auto border-b border-purple-900/20 pb-4 mb-6 text-xs uppercase font-bold tracking-wider">
                 <button onclick="switchTab('admin', 'tab-command')" id="btn-admin-tab-command" class="admin-tab-btn px-4 py-2 rounded bg-syndicate-500 text-white">Command (5 Slots)</button>
                 <button onclick="switchTab('admin', 'tab-inner')" id="btn-admin-tab-inner" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Inner Circle (5 Slots)</button>
-                <button onclick="switchTab('admin', 'tab-ranks-setup')" id="btn-admin-tab-ranks-setup" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Hierarchy & Ranks Configuration</button>
+                <button onclick="switchTab('admin', 'tab-ranks-setup')" id="btn-admin-tab-ranks-setup" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Hierarchy & Ranks Setup</button>
                 <button onclick="switchTab('admin', 'tab-certs-setup')" id="btn-admin-tab-certs-setup" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Certifications Setup</button>
                 <button onclick="switchTab('admin', 'tab-admin-docs')" id="btn-admin-tab-admin-docs" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Internal SOP Texts</button>
                 <button onclick="switchTab('admin', 'tab-turfs')" id="btn-admin-tab-turfs" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Gang Turfs</button>
@@ -751,7 +751,7 @@
                         </div>
 
                         <div class="flex gap-2">
-                            <button onclick="saveRosterMember()" class="flex-1 bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2.5 rounded text-xs uppercase tracking-wider">Submit Entry</button>
+                            <button onclick="saveRosterMember()" class="flex-1 bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2.5 rounded text-xs uppercase tracking-wider font-semibold">Submit Entry</button>
                             <button id="btn-cancel-roster-edit" onclick="resetRosterForm()" class="hidden bg-gray-800 hover:bg-gray-700 text-white font-bold py-2.5 px-4 rounded text-xs uppercase tracking-wider">Cancel</button>
                         </div>
                     </div>
@@ -923,7 +923,7 @@
                 vehiclePdf: ""
             },
             discordClientId: "",
-            // Hardcode your cloud database properties directly in the website code (CORS preflight bypassed)
+            // Hardcoded cloud database properties directly in the website code (CORS preflight bypassed)
             cloudSyncUrl: "https://kvdb.io/Db9q9z4t3H3GaZa63bAdkt/tsf_state",
             cloudSyncHeaderKey: "",
             cloudSyncHeaderVal: "",
@@ -1240,11 +1240,6 @@
             document.getElementById('discord-auth-modal').classList.add('hidden');
         }
 
-        // Safe elements retrieval to protect setup script from reference crashes
-        function updateDatabaseCodeField() {
-            // Unused in KVdb direct cloud sync, but kept clean to prevent errors
-        }
-
         function saveFailsafeClientId() {
             const val = document.getElementById('failsafe-discord-client-id').value.trim();
             if (!val) {
@@ -1490,6 +1485,183 @@
         /* 
            ============= ACTIONS: PORTAL ADMINISTRATION SETTINGS =============
         */
+        function renderAdminPanel() {
+            // Admin Command Section
+            const adminCmdList = document.getElementById('admin-command-list');
+            if (adminCmdList) {
+                adminCmdList.innerHTML = state.command.map((member, i) => `
+                    <div class="bg-black/40 p-3 rounded border border-purple-950/60 flex flex-col justify-between space-y-3">
+                        <span class="text-xs font-bold text-syndicate-500 block truncate">${member.role}</span>
+                        <input type="text" id="cmd-name-${i}" value="${member.name}" placeholder="Name" class="w-full bg-black border border-purple-900/30 rounded p-1 text-xs text-white">
+                        <div class="space-y-1">
+                            <label class="text-[9px] text-gray-500 block">Image URL</label>
+                            <input type="text" id="cmd-img-url-${i}" value="${member.img || ''}" placeholder="https://..." class="w-full bg-black border border-purple-900/30 rounded p-1 text-xs text-white">
+                        </div>
+                        <button onclick="saveAdminCommand(${i})" class="w-full bg-purple-950 hover:bg-syndicate-500 py-1.5 text-xs font-semibold rounded text-white tracking-wider transition-colors">Save</button>
+                    </div>
+                `).join('');
+            }
+
+            // Admin Inner Circle Section
+            const adminInnerList = document.getElementById('admin-inner-list');
+            if (adminInnerList) {
+                adminInnerList.innerHTML = state.innerCircle.map((member, i) => `
+                    <div class="bg-black/40 p-3 rounded border border-purple-950/60 flex flex-col justify-between space-y-3">
+                        <span class="text-xs font-bold text-syndicate-500 block">Spot ${i+1}</span>
+                        <input type="text" id="inner-name-${i}" value="${member.name}" placeholder="Name" class="w-full bg-black border border-purple-900/30 rounded p-1 text-xs text-white">
+                        <div class="space-y-1">
+                            <label class="text-[9px] text-gray-500 block">Image URL</label>
+                            <input type="text" id="inner-img-url-${i}" value="${member.img || ''}" placeholder="https://..." class="w-full bg-black border border-purple-900/30 rounded p-1 text-xs text-white">
+                        </div>
+                        <button onclick="saveAdminInner(${i})" class="w-full bg-purple-950 hover:bg-syndicate-500 py-1.5 text-xs font-semibold rounded text-white tracking-wider transition-colors">Save</button>
+                    </div>
+                `).join('');
+            }
+
+            // Admin Turfs Section
+            const adminTurfsList = document.getElementById('admin-turfs-list');
+            if (adminTurfsList) {
+                if (state.turfs.length === 0) {
+                    adminTurfsList.innerHTML = `<span class="col-span-full text-xs text-gray-500 italic">No registered turfs. Enter details on the left to add your first zone.</span>`;
+                } else {
+                    adminTurfsList.innerHTML = state.turfs.map((turf, i) => `
+                        <div class="bg-black/45 p-3 rounded border border-purple-950 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 bg-purple-950/20 border border-purple-900/30 rounded overflow-hidden">
+                                    <img src="${turf.img || 'https://placehold.co/100x100?text=None'}" class="w-full h-full object-cover">
+                                </div>
+                                <div>
+                                    <span class="block font-bold text-white text-xs">${turf.name}</span>
+                                    <span class="block text-[10px] text-syndicate-500 uppercase tracking-widest">Postal ${turf.postal}</span>
+                                </div>
+                            </div>
+                            <button onclick="deleteTurf(${i})" class="text-red-500 hover:text-red-700 p-2 text-xs" title="Remove Turf"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            // Admin Gallery Section
+            const adminGalleryList = document.getElementById('admin-gallery-list');
+            if (adminGalleryList) {
+                adminGalleryList.innerHTML = state.gallery.map((img, i) => `
+                    <div class="bg-black/40 p-4 rounded border border-purple-950/60 space-y-4">
+                        <span class="text-xs font-bold text-white block">Gallery Spot ${i+1}</span>
+                        <div class="aspect-video bg-black rounded overflow-hidden relative border border-purple-900/20">
+                            <img src="${img || 'https://placehold.co/600x400/1a1a1a/63207b?text=Empty+Slot'}" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-400 block mb-1">Image URL</label>
+                            <input type="text" id="gallery-url-${i}" value="${img || ''}" placeholder="https://..." class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                        </div>
+                        <button onclick="saveAdminGallery(${i})" class="w-full bg-purple-950 hover:bg-syndicate-500 py-2 text-xs font-bold rounded text-white tracking-wider transition-colors uppercase">Save Image</button>
+                    </div>
+                `).join('');
+            }
+
+            // Render Dropdowns for Category Assignments
+            const dropdownCatSetup = document.getElementById('setup-rank-category');
+            if (dropdownCatSetup) {
+                dropdownCatSetup.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+            }
+
+            // Render Ranks Setup (Categorized tree layout)
+            renderHierarchyTreeManager();
+
+            // Setup Tab - Certifications Checklist
+            const certsList = document.getElementById('setup-certs-list');
+            if (certsList) {
+                certsList.innerHTML = state.certs.map((cert) => `
+                    <div class="bg-black/35 p-3 rounded border border-purple-950/65 flex justify-between items-center text-xs">
+                        <span class="text-white font-semibold"><i class="fas fa-certificate text-purple-500 mr-1.5"></i>${cert}</span>
+                        <button onclick="deleteCertType('${cert}')" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>
+                    </div>
+                `).join('');
+            }
+
+            // Protected setup fields with null checks to prevent Reference errors
+            const discordInput = document.getElementById('setup-discord-client-id');
+            if (discordInput) discordInput.value = state.discordClientId || "";
+            
+            const outfitUrlEl = document.getElementById('admin-outfit-pdf-url');
+            if (outfitUrlEl) outfitUrlEl.value = state.documents.outfitPdf || "";
+
+            const vehicleUrlEl = document.getElementById('admin-vehicle-pdf-url');
+            if (vehicleUrlEl) vehicleUrlEl.value = state.documents.vehiclePdf || "";
+
+            const syncUrlEl = document.getElementById('sync-url-input');
+            if (syncUrlEl) syncUrlEl.value = state.cloudSyncUrl || "";
+            
+            const syncHeaderKeyEl = document.getElementById('sync-header-key');
+            if (syncHeaderKeyEl) syncHeaderKeyEl.value = state.cloudSyncHeaderKey || "";
+
+            const syncHeaderValEl = document.getElementById('sync-header-val');
+            if (syncHeaderValEl) syncHeaderValEl.value = state.cloudSyncHeaderVal || "";
+
+            const syncEnabledEl = document.getElementById('sync-enabled-check');
+            if (syncEnabledEl) syncEnabledEl.checked = !!state.cloudSyncEnabled;
+
+            // Render custom SOP interactive builder
+            renderSOPSectionsAdminList();
+        }
+
+        /*
+           ============= RENDER ADMINISTRATIVE TREE CONTROLS =============
+        */
+        function renderHierarchyTreeManager() {
+            const container = document.getElementById('setup-hierarchy-tree');
+            if (!container) return;
+            
+            if (state.categories.length === 0) {
+                container.innerHTML = `<span class="text-xs text-gray-500 italic">No categories registered yet.</span>`;
+                return;
+            }
+
+            container.innerHTML = state.categories.map((cat, catIdx) => {
+                const categoryRanks = state.ranks.filter(r => r.categoryId === cat.id);
+                
+                return `
+                    <div class="bg-black/40 p-4 rounded border border-purple-900/30 space-y-3">
+                        <div class="flex justify-between items-center bg-black/60 p-2.5 rounded border-b border-purple-900/40">
+                            <div>
+                                <span class="text-[10px] text-syndicate-500 uppercase tracking-widest font-bold">Category Level ${catIdx+1}</span>
+                                <h5 class="text-white font-bold text-sm">${cat.title}</h5>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="moveCategory(${catIdx}, -1)" class="text-purple-300 hover:text-white p-1 text-xs" title="Move Category Up"><i class="fas fa-arrow-up"></i></button>
+                                <button onclick="moveCategory(${catIdx}, 1)" class="text-purple-300 hover:text-white p-1 text-xs" title="Move Category Down"><i class="fas fa-arrow-down"></i></button>
+                                <button onclick="deleteSetupCategory('${cat.id}')" class="text-red-400 hover:text-red-600 p-1 text-xs" title="Delete Category"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Nested Ranks within this specific Category -->
+                        <div class="space-y-2 pl-3">
+                            ${categoryRanks.length === 0 ? `<span class="text-[11px] text-gray-600 italic block">No ranks assigned here yet.</span>` : categoryRanks.map((rank) => {
+                                const globalRankIdx = state.ranks.findIndex(r => r.id === rank.id);
+                                const calculatedRange = getRankRanges(globalRankIdx);
+                                return `
+                                    <div class="bg-black/45 p-2 rounded border border-purple-950/70 flex justify-between items-center text-xs">
+                                        <div>
+                                            <span class="text-white font-bold">${rank.title}</span>
+                                            <span class="text-[10px] text-purple-400 ml-2">(${rank.capacity} Slots, Identifiers: ${formatIdentifier(calculatedRange.start)}-${formatIdentifier(calculatedRange.end)})</span>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button onclick="moveRank(${globalRankIdx}, -1)" class="text-gray-400 hover:text-white text-[11px]" title="Move Rank Up"><i class="fas fa-chevron-up"></i></button>
+                                            <button onclick="moveRank(${globalRankIdx}, 1)" class="text-gray-400 hover:text-white text-[11px]" title="Move Rank Down"><i class="fas fa-chevron-down"></i></button>
+                                            <button onclick="deleteSetupRank('${rank.id}')" class="text-red-400 hover:text-red-500 text-[11px]" title="Delete Rank"><i class="fas fa-times"></i></button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* 
+           ============= ACTIONS: PORTAL ADMINISTRATION SETTINGS =============
+        */
         function saveAdminCommand(index) {
             const name = document.getElementById(`cmd-name-${index}`).value;
             const urlInput = document.getElementById(`cmd-img-url-${index}`);
@@ -1498,6 +1670,7 @@
 
             if (saveState()) {
                 logAdminAction("Command Roster Spot Modified", `Assigned slot ${index+1} (**${state.command[index].role}**) to **${name}**`);
+                alert(" Roster spot saved locally. Roster modifications will automatically synchronize with your cloud database!");
             }
         }
 
@@ -1509,6 +1682,7 @@
 
             if (saveState()) {
                 logAdminAction("Inner Circle Spot Modified", `Assigned slot ${index+1} to **${name}**`);
+                alert("Inner Circle spot saved locally. Roster modifications will automatically synchronize with your cloud database!");
             }
         }
 
@@ -1530,6 +1704,7 @@
                 document.getElementById('turf-postal-input').value = "";
                 document.getElementById('turf-img-url-input').value = "";
                 renderAdminPanel();
+                alert("Turf saved locally. Roster modifications will automatically synchronize with your cloud database!");
             } else {
                 state.turfs.pop();
             }
@@ -1542,6 +1717,7 @@
                 if (saveState()) {
                     logAdminAction("Gang Territory Released", `Released territorial claim for **${target.name}** (Postal ${target.postal})`);
                     renderAdminPanel();
+                    alert("Turf deleted locally. Roster modifications will automatically synchronize with your cloud database!");
                 } else {
                     state.turfs.splice(index, 0, target);
                 }
@@ -1557,6 +1733,7 @@
                 if (saveState()) {
                     logAdminAction("Archive Gallery Modified", `Uploaded fresh image snapshot for Gallery Slot ${index+1}`);
                     renderAdminPanel();
+                    alert("Gallery image saved locally. Roster modifications will automatically synchronize with your cloud database!");
                 } else {
                     state.gallery[index] = oldImg;
                 }
@@ -1587,6 +1764,7 @@
                 logAdminAction("Category Level Created", `Registered operational rank category **${title}**`);
                 renderAdminPanel();
                 document.getElementById('setup-category-title').value = "";
+                alert("Category saved locally. Roster modifications will automatically synchronize with your cloud database!");
             } else {
                 state.categories.pop();
             }
@@ -1611,6 +1789,7 @@
                 if (saveState()) {
                     logAdminAction("Category Level Deleted", `Removed category and migrated child ranks.`);
                     renderAdminPanel();
+                    alert("Category deleted locally. Roster modifications will automatically synchronize with your cloud database!");
                 } else {
                     state.categories = oldCategories;
                     state.ranks = oldRanks;
@@ -1655,6 +1834,7 @@
                 renderAdminPanel();
                 document.getElementById('setup-rank-title').value = "";
                 document.getElementById('setup-rank-capacity').value = "";
+                alert("Rank saved locally. Roster modifications will automatically synchronize with your cloud database!");
             } else {
                 state.ranks.pop();
             }
@@ -1672,6 +1852,7 @@
                 if (saveState()) {
                     logAdminAction("Roster Rank Deleted", `Permanently dropped **${targetRank?.title}** from system databases`);
                     renderAdminPanel();
+                    alert("Rank deleted locally. Roster modifications will automatically synchronize with your cloud database!");
                 } else {
                     state.ranks = oldRanks;
                     state.members = oldMembers;
@@ -1689,6 +1870,7 @@
                     logAdminAction("Operational Credential Created", `Registered operational specialty certificate **${name}**`);
                     renderAdminPanel();
                     document.getElementById('setup-cert-name').value = "";
+                    alert("Specialty certificate saved locally. Roster modifications will automatically synchronize with your cloud database!");
                 } else {
                     state.certs.pop();
                 }
@@ -1702,6 +1884,7 @@
                 if (saveState()) {
                     logAdminAction("Operational Credential Discarded", `Dropped specialty certification category **${name}**`);
                     renderAdminPanel();
+                    alert("Specialty certificate deleted locally. Roster modifications will automatically synchronize with your cloud database!");
                 } else {
                     state.certs = oldCerts;
                 }
@@ -1717,6 +1900,7 @@
 
             if (saveState()) {
                 logAdminAction("Policy PDF URLs Updated", `Adjusted fleet configurations and uniform links`);
+                alert("Guide Links saved locally. Roster modifications will automatically synchronize with your cloud database!");
             }
         }
 
@@ -1725,6 +1909,8 @@
         */
         function renderSOPSectionsAdminList() {
             const container = document.getElementById('setup-sop-sections-list');
+            if (!container) return;
+            
             if (!state.documents.sopSections || state.documents.sopSections.length === 0) {
                 container.innerHTML = `<span class="text-xs text-gray-500 italic">No SOP Sections registered. Add your first section above.</span>`;
                 return;
@@ -1788,6 +1974,7 @@
                 logAdminAction(secId ? "SOP Section Updated" : "SOP Section Created", `Saved SOP Section **${num} - ${title}**`);
                 resetSOPSectionForm();
                 renderAdminPanel();
+                alert("SOP section saved locally. Roster modifications will automatically synchronize with your cloud database!");
             } else {
                 state.documents.sopSections = oldSections;
             }
@@ -1828,6 +2015,7 @@
                 if (saveState()) {
                     logAdminAction("SOP Section Deleted", `Removed Section **${sec?.num} - ${sec?.title}**`);
                     renderAdminPanel();
+                    alert("SOP section deleted locally. Roster modifications will automatically synchronize with your cloud database!");
                 } else {
                     state.documents.sopSections = oldSections;
                 }
@@ -2011,6 +2199,7 @@
                 );
                 resetRosterForm();
                 renderRosterPanel();
+                alert("Personnel saved locally. Roster modifications will automatically synchronize with your cloud database!");
             } else {
                 state.members = oldMembers;
             }
@@ -2081,6 +2270,7 @@
                         target?.numericId || ""
                     );
                     renderRosterPanel();
+                    alert("Personnel deleted locally. Roster modifications will automatically synchronize with your cloud database!");
                 } else {
                     state.members = oldMembers;
                 }
@@ -2267,7 +2457,7 @@
                         <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2 whitespace-pre-line">${sec.text}</p>
                         ${sec.btnLabel && sec.btnUrl ? `
                             <a href="${sec.btnUrl}" target="_blank" class="inline-flex items-center gap-1.5 mt-3 bg-purple-950 hover:bg-syndicate-500 text-white font-bold text-[10px] px-3 py-1.5 rounded transition-all uppercase">
-                                <i class="fas fa-external-link-alt text-[9px]"></i> ${sec.btnLabel}
+                                <i class="fas fa-external-link-alt"></i> ${sec.btnLabel}
                             </a>
                         ` : ''}
                     </div>
