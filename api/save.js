@@ -1,0 +1,2439 @@
+export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ message: 'Method not allowed' });
+    }
+
+    const token = process.env.GITHUB_TOKEN;
+    const owner = process.env.GITHUB_OWNER;
+    const repo = process.env.GITHUB_REPO;
+    const path = 'database.json';
+
+    if (!token || !owner || !repo) {
+        return res.status(500).json({ message: 'Configuration missing. Add GITHUB_TOKEN, GITHUB_OWNER, and GITHUB_REPO env variables in Vercel.' });
+    }
+
+    try {
+        // 1. Get the current file SHA from GitHub API
+        const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        const getRes = await fetch(getUrl, {
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+
+        let sha = null;
+        if (getRes.status === 200) {
+            const fileData = await getRes.json();
+            sha = fileData.sha;
+        } else if (getRes.status !== 404) {
+            const errMsg = await getRes.text();
+            return res.status(500).json({ message: `Failed to fetch file SHA: ${errMsg}` });
+        }
+
+        // 2. Prepare content
+        const bodyContent = JSON.stringify(req.body, null, 2);
+        const contentBase64 = Buffer.from(bodyContent).toString('base64');
+
+        const putBody = {
+            message: 'Auto-update database.json via Web Roster Portal',
+            content: contentBase64
+        };
+        if (sha) {
+            putBody.sha = sha;
+        }
+
+        // 3. Write back to GitHub
+        const putRes = await fetch(getUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/vnd.github.v3+json'
+            },
+            body: JSON.stringify(putBody)
+        });
+
+        if (putRes.ok) {
+            return res.status(200).json({ message: 'Database auto-updated successfully on GitHub!' });
+        } else {
+            const putErr = await putRes.text();
+            return res.status(500).json({ message: `GitHub update failed: ${putErr}` });
+        }
+    } catch (err) {
+        return res.status(500).json({ message: err.message });
+    }
+}
+
+Step 4: Upload the New HTML Code
+
+Replace the entire code of your index.html file on GitHub with this updated
+version (it includes the auto-push API connector and retains the manual
+copy-paste backup just in case):
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Syndicate Family | TSF Mafia</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cinzel & Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        syndicate: {
+                            50: '#f7f4f9',
+                            100: '#eddfe3',
+                            500: '#63207b', // Primary Purple
+                            800: '#3c0a4e',
+                            900: '#1e0529',
+                            dark: '#0a0a0a',
+                            card: '#141414'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Cinzel', 'serif'],
+                        sans: ['Montserrat', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #0a0a0a;
+            color: #e5e7eb;
+        }
+        .serif-font {
+            font-family: 'Cinzel', serif;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0a0a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #63207b;
+            border-radius: 4px;
+        }
+        /* SOP Dossier Cream Styling */
+        .sop-container {
+            background-color: #ebdcb9;
+            color: #2b0c36;
+            font-family: 'Montserrat', sans-serif;
+        }
+        .sop-serif {
+            font-family: 'Cinzel', serif;
+            color: #3c0a4e;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-syndicate-500 selection:text-white">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-purple-900/40 bg-black/95 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <img src="logo.png" alt="TSF Logo" onerror="this.src='https://placehold.co/100x100/1e0529/63207b?text=TSF'" class="h-12 w-12 object-contain">
+                <div>
+                    <span class="serif-font font-black text-xl tracking-wider text-white block">THE SYNDICATE FAMILY</span>
+                    <span class="text-xs text-syndicate-500 tracking-widest font-semibold block -mt-1">LOS SANTOS MAFIA</span>
+                </div>
+            </div>
+            
+            <nav class="hidden md:flex items-center gap-6 text-sm font-semibold tracking-wider uppercase">
+                <!-- Sync status badge -->
+                <div id="cloud-sync-status" class="hidden"></div>
+                
+                <a href="#about" class="hover:text-syndicate-500 transition-colors">Story</a>
+                <a href="#command" class="hover:text-syndicate-500 transition-colors">Command</a>
+                <button onclick="openDocumentsViewer()" class="hover:text-syndicate-500 transition-colors uppercase font-semibold">SOP Documents</button>
+                <button onclick="openRosterViewer()" class="hover:text-syndicate-500 transition-colors uppercase font-semibold">Roster</button>
+                <a href="#turfs" class="hover:text-syndicate-500 transition-colors">Turfs</a>
+                <a href="#gallery" class="hover:text-syndicate-500 transition-colors">Gallery</a>
+                <a href="https://discord.gg/wsErXv86QQ" target="_blank" class="bg-syndicate-500 hover:bg-syndicate-800 text-white px-4 py-2 rounded transition-colors flex items-center gap-2 text-xs">
+                    <i class="fab fa-discord"></i> Discord
+                </a>
+            </nav>
+            
+            <!-- Mobile Menu Toggle Button -->
+            <button onclick="toggleMobileMenu()" class="md:hidden text-2xl text-white focus:outline-none">
+                <i class="fas fa-bars" id="menu-icon"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Dropdown Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-syndicate-dark border-b border-purple-900/40 px-4 py-4 space-y-3 font-semibold">
+            <a href="#about" onclick="toggleMobileMenu()" class="block text-sm tracking-wider uppercase hover:text-syndicate-500 py-1">Story</a>
+            <a href="#command" onclick="toggleMobileMenu()" class="block text-sm tracking-wider uppercase hover:text-syndicate-500 py-1">Command</a>
+            <button onclick="toggleMobileMenu(); openDocumentsViewer();" class="block w-full text-left text-sm tracking-wider uppercase hover:text-syndicate-500 py-1">SOP Documents</button>
+            <button onclick="toggleMobileMenu(); openRosterViewer();" class="block w-full text-left text-sm tracking-wider uppercase hover:text-syndicate-500 py-1">Roster</button>
+            <a href="#turfs" onclick="toggleMobileMenu()" class="block text-sm tracking-wider uppercase hover:text-syndicate-500 py-1">Turfs</a>
+            <a href="#gallery" onclick="toggleMobileMenu()" class="block text-sm tracking-wider uppercase hover:text-syndicate-500 py-1">Gallery</a>
+            <a href="https://discord.gg/wsErXv86QQ" target="_blank" class="inline-block bg-syndicate-500 hover:bg-syndicate-800 text-white px-4 py-2 rounded transition-colors text-xs uppercase tracking-wider font-semibold">
+                <i class="fab fa-discord mr-1"></i> Discord
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative bg-cover bg-center py-24 px-4 border-b border-purple-950/50" style="background-image: linear-gradient(rgba(10, 10, 10, 0.85), rgba(10, 10, 10, 0.95)), url('https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&q=80');">
+        <div class="max-w-4xl mx-auto text-center">
+            <img src="logo.png" alt="TSF Logo" onerror="this.src='https://placehold.co/200x200/1e0529/63207b?text=TSF'" class="h-40 w-40 mx-auto mb-6 object-contain filter drop-shadow-[0_0_15px_rgba(99,32,123,0.6)]">
+            <h1 class="serif-font font-black text-4xl md:text-6xl text-white tracking-widest mb-4">THE SYNDICATE FAMILY</h1>
+            <p class="text-syndicate-500 font-bold tracking-[0.25em] text-sm md:text-base uppercase mb-8">Honor. Power. Empire.</p>
+            <div class="flex justify-center gap-4 flex-wrap">
+                <button onclick="openDocumentsViewer()" class="bg-syndicate-500 hover:bg-syndicate-800 transition-all text-white font-bold tracking-wider text-xs uppercase px-6 py-3 rounded border border-syndicate-500">
+                    SOP & Manuals
+                </button>
+                <button onclick="openRosterViewer()" class="bg-transparent hover:bg-white/5 transition-all text-white font-bold tracking-wider text-xs uppercase px-6 py-3 rounded border border-white/20">
+                    View Roster
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- About / Story Section -->
+    <section id="about" class="py-20 px-4 max-w-7xl mx-auto">
+        <div class="grid md:grid-cols-12 gap-12 items-center">
+            <div class="md:col-span-7">
+                <h2 class="serif-font text-3xl font-bold mb-6 text-white border-b border-syndicate-500 pb-2 inline-block">The Legacy</h2>
+                <p class="text-gray-300 leading-relaxed text-base mb-4">
+                    The former Ancelotti Crime Family built its reputation through large-scale drug manufacturing and trafficking in Liberty City. Now expanding to Los Santos under the revived Syndicate Family (TSF) name, they aim to grow their empire and eliminate the competition.
+                </p>
+                <p class="text-gray-300 leading-relaxed text-base mb-6">
+                    TSF operates in silence, relying on strict professionalism, tailored suits, and calculated actions. They also work closely with organizations such as the <span class="text-syndicate-500 font-semibold">BDBE Black Site</span>, an underground hitman network, to enforce control over their interests.
+                </p>
+                <div class="p-4 bg-syndicate-card border-l-4 border-syndicate-500 rounded-r">
+                    <span class="block italic text-sm text-gray-400">"Family is not about blood. It is about those who stand beside you when the empire is built."</span>
+                </div>
+            </div>
+            <div class="md:col-span-5 flex justify-center">
+                <div class="relative group max-w-sm w-full">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-syndicate-500 to-purple-900 rounded-lg blur opacity-30 group-hover:opacity-60 transition duration-1000"></div>
+                    <div class="relative bg-syndicate-card p-6 rounded-lg border border-purple-900/30 text-center">
+                        <i class="fas fa-handshake text-5xl text-syndicate-500 mb-4"></i>
+                        <h3 class="serif-font text-xl font-bold mb-2">Want to Join?</h3>
+                        <p class="text-gray-400 text-sm mb-6">Read our guidelines, respect our uniform structure, and apply via our secure Discord dispatch.</p>
+                        <a href="https://discord.gg/wsErXv86QQ" target="_blank" class="inline-block bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold tracking-wider text-xs uppercase px-5 py-3 rounded w-full transition-all">
+                            Join TSF Discord
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Command & Inner Circle Section -->
+    <section id="command" class="py-20 px-4 bg-syndicate-card border-y border-purple-950/40">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="serif-font text-3xl md:text-4xl font-bold text-white mb-2">THE COMMISSION</h2>
+                <div class="w-24 h-1 bg-syndicate-500 mx-auto mb-4"></div>
+                <p class="text-gray-400 max-w-lg mx-auto text-sm">The administrative minds orchestrating all Syndicate operations across the state of San Andreas.</p>
+            </div>
+            
+            <!-- Command Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-20" id="command-grid">
+                <!-- Dynamically loaded -->
+            </div>
+
+            <div class="text-center mb-16">
+                <h2 class="serif-font text-2xl md:text-3xl font-bold text-white mb-2">INNER CIRCLE</h2>
+                <div class="w-16 h-1 bg-syndicate-500 mx-auto mb-4"></div>
+                <p class="text-gray-400 max-w-lg mx-auto text-sm">Our Pre-Command team. Elite individuals executing Syndicate actions and preparing to step up.</p>
+            </div>
+
+            <!-- Inner Circle Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6" id="inner-circle-grid">
+                <!-- Dynamically loaded -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Documents Section Intercepts -->
+    <section id="documents" class="py-20 px-4 max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="serif-font text-3xl font-bold text-white mb-2">RESOURCES & PROTOCOLS</h2>
+            <div class="w-24 h-1 bg-syndicate-500 mx-auto mb-4"></div>
+            <p class="text-gray-400 text-sm">Essential operational documents and aesthetic guidelines managed internally.</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <!-- SOP & Roster Card -->
+            <div class="bg-syndicate-card border border-purple-900/35 p-6 rounded-lg flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-purple-950/60 p-3 rounded text-syndicate-500 text-xl"><i class="fas fa-file-shield"></i></div>
+                        <h3 class="serif-font font-bold text-lg">SOP & Roster</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-6">Review official codes of conduct, gang hierarchies, active divisions, and member indexes.</p>
+                </div>
+                <div class="space-y-3">
+                    <button onclick="openDocumentsViewer('rules')" class="w-full text-left flex justify-between items-center text-xs bg-purple-950/30 hover:bg-purple-950/70 p-3 rounded border border-purple-900/30 transition-colors">
+                        <span>Standard Operating Procedure (SOP)</span>
+                        <i class="fas fa-book-open text-syndicate-500"></i>
+                    </button>
+                    <button onclick="openRosterViewer()" class="w-full text-left flex justify-between items-center text-xs bg-purple-950/30 hover:bg-purple-950/70 p-3 rounded border border-purple-900/30 transition-colors">
+                        <span>Official Gang Roster</span>
+                        <i class="fas fa-users text-syndicate-500"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Vehicle Card -->
+            <div class="bg-syndicate-card border border-purple-900/35 p-6 rounded-lg flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-purple-950/60 p-3 rounded text-syndicate-500 text-xl"><i class="fas fa-car"></i></div>
+                        <h3 class="serif-font font-bold text-lg">Vehicle Structures</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-6">Review approved vehicle rules, colors, speed structures, and active operations.</p>
+                </div>
+                <button onclick="openDocumentsViewer('vehicles')" class="flex justify-between items-center text-xs bg-purple-950/30 hover:bg-purple-950/70 p-3 rounded border border-purple-900/30 transition-colors mt-auto w-full text-left">
+                    <span>View Vehicle Presentation</span>
+                    <i class="fas fa-file-pdf text-syndicate-500"></i>
+                </button>
+            </div>
+
+            <!-- Uniform Card -->
+            <div class="bg-syndicate-card border border-purple-900/35 p-6 rounded-lg flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-purple-950/60 p-3 rounded text-syndicate-500 text-xl"><i class="fas fa-user-tie"></i></div>
+                        <h3 class="serif-font font-bold text-lg">Uniform Policy</h3>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-6">Verify formal and tactical operations uniform profiles. View custom structures:</p>
+                    <ul class="text-gray-300 text-xs space-y-2 mb-4">
+                        <li class="flex items-center gap-2">
+                            <i class="fas fa-circle text-[6px] text-syndicate-500"></i>
+                            Strictly black base with designated deep purple accents.
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <i class="fas fa-circle text-[6px] text-syndicate-500"></i>
+                            Must retain professional, high-class formality.
+                        </li>
+                    </ul>
+                </div>
+                <button onclick="openDocumentsViewer('outfits')" class="flex justify-between items-center text-xs bg-purple-950/30 hover:bg-purple-950/70 p-3 rounded border border-purple-900/30 transition-colors mt-auto w-full text-left">
+                    <span>View Outfit Presentation</span>
+                    <i class="fas fa-file-pdf text-syndicate-500"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Turfs Section -->
+    <section id="turfs" class="py-20 px-4 bg-syndicate-card border-y border-purple-950/40">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="serif-font text-3xl font-bold text-white mb-2">FAMILY TURFS & HOUSES</h2>
+                <div class="w-24 h-1 bg-syndicate-500 mx-auto mb-4"></div>
+                <p class="text-gray-400 text-sm">Sectors, safehouses, and postal zones under the direct control of the Syndicate Family.</p>
+            </div>
+            
+            <div id="turfs-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Dynamically loaded -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery" class="py-20 px-4 max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="serif-font text-3xl font-bold text-white mb-2">SYNDICATE ARCHIVES</h2>
+            <div class="w-24 h-1 bg-syndicate-500 mx-auto mb-4"></div>
+            <p class="text-gray-400 text-sm">Visual reports showcasing TSF power, presence, and gatherings.</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6" id="gallery-grid">
+            <!-- Dynamically loaded -->
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-black py-10 border-t border-purple-950/60 text-sm text-center">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-left">
+                <span class="serif-font font-bold text-base tracking-widest text-white">THE SYNDICATE FAMILY</span>
+                <p class="text-xs text-gray-500 mt-1">© 2026 TSF. All Rights Reserved. Created for GTA 5 Roleplay.</p>
+            </div>
+            <div class="flex gap-3 flex-wrap">
+                <a href="https://discord.gg/wsErXv86QQ" target="_blank" class="bg-syndicate-card hover:bg-syndicate-500 text-gray-300 hover:text-white px-3 py-2 rounded transition-colors" title="Discord">
+                    <i class="fab fa-discord"></i>
+                </a>
+                <button onclick="openAccessCodeModal('roster')" class="bg-syndicate-card hover:bg-purple-900 text-gray-300 hover:text-white px-3 py-2 rounded transition-colors text-xs font-semibold" title="Roster Management Panel">
+                    <i class="fas fa-users-cog"></i> Roster Management
+                </button>
+                <button onclick="openAccessCodeModal('admin')" class="bg-syndicate-card hover:bg-syndicate-500 text-gray-300 hover:text-white px-3 py-2 rounded transition-colors text-xs font-semibold" title="Access Admin Portal">
+                    <i class="fas fa-lock"></i> Admin Portal
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- DISCORD LOGIN / VERIFICATION GATEWAY MODAL -->
+    <div id="discord-auth-modal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden items-center justify-center z-[60] p-4">
+        <div class="bg-syndicate-card border border-purple-900/60 p-6 rounded-lg w-full max-w-md relative">
+            <button onclick="closeDiscordAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+            <div class="text-center mb-6">
+                <i class="fab fa-discord text-5xl text-[#5865F2] mb-3"></i>
+                <h3 class="serif-font text-xl font-bold text-white">Authentication Required</h3>
+                <p class="text-xs text-gray-400 mt-1">Discord identity verification is mandatory for audit logging.</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button onclick="triggerDiscordOAuthRedirect()" class="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-bold py-2.5 rounded transition-colors text-xs uppercase tracking-wider flex items-center justify-center gap-2">
+                    <i class="fab fa-discord text-base"></i> Login with Discord OAuth
+                </button>
+
+                <!-- Initial setup box shown *only* if client ID configuration is missing from browser storage -->
+                <div id="discord-setup-failsafe" class="hidden bg-black/40 border border-purple-900/35 p-4 rounded space-y-3">
+                    <span class="text-[10px] font-bold text-purple-400 block uppercase tracking-wider">Initial Setup Required</span>
+                    <p class="text-[10px] text-gray-400">No Discord Client ID has been configured on this site yet. Enter your Discord Developer Portal Client ID to initialize access:</p>
+                    <input type="text" id="failsafe-discord-client-id" placeholder="e.g. 10145880495..." class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                    <button onclick="saveFailsafeClientId()" class="w-full bg-purple-900 hover:bg-syndicate-500 text-white font-bold py-1.5 rounded transition-colors text-[10px] uppercase tracking-wider">Save Client ID</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACCESS SECURITY AUTHORIZATION MODAL -->
+    <div id="login-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+        <div class="bg-syndicate-card border border-purple-900/60 p-6 rounded-lg w-full max-w-sm relative">
+            <button onclick="closeAccessCodeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+            <h3 class="serif-font text-xl font-bold mb-2 text-white text-center" id="login-modal-title">Portal Access</h3>
+            <p class="text-xs text-gray-400 mb-6 text-center" id="login-modal-desc">Enter secure authentication credentials.</p>
+            <div class="space-y-4">
+                <input type="password" id="access-code-input" placeholder="Enter Access Code" class="w-full bg-black border border-purple-900/50 rounded p-2.5 text-white focus:outline-none focus:border-syndicate-500 text-center text-sm">
+                <button onclick="verifyAccessCode()" class="w-full bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2 rounded transition-colors text-xs uppercase tracking-wider">Authorize</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN ADMIN INTERACTIVE PORTAL MODAL -->
+    <div id="admin-portal" class="fixed inset-0 bg-black/95 overflow-y-auto hidden z-50 p-4 md:p-8">
+        <div class="max-w-6xl mx-auto bg-syndicate-card border border-purple-900/60 rounded-xl p-6 md:p-8 relative">
+            <div class="flex justify-between items-center border-b border-purple-900/40 pb-4 mb-6">
+                <div>
+                    <h2 class="serif-font text-2xl font-bold text-white">TSF ADMIN PORTAL</h2>
+                    <div class="flex items-center gap-2 mt-1 flex-wrap gap-y-2">
+                        <span class="text-xs text-syndicate-500 font-semibold tracking-wider">System Settings & Resources Configuration</span>
+                        <span class="text-gray-600 hidden sm:inline">|</span>
+                        <div id="admin-logged-user-display" class="flex items-center gap-1.5 text-xs text-purple-400 mr-2"></div>
+                        <span class="text-gray-600 hidden sm:inline">|</span>
+                        <div id="active-db-display-label" class="text-[10px] text-purple-400 bg-purple-950/20 border border-purple-900/35 px-2 py-0.5 rounded font-mono font-bold">DATABASE: GitHub database.json File</div>
+                    </div>
+                </div>
+                <button onclick="closeAdminPortal()" class="bg-red-950/40 hover:bg-red-800 text-white px-4 py-2 rounded text-xs uppercase tracking-wider font-bold transition-colors">
+                    <i class="fas fa-sign-out-alt"></i> Exit Admin
+                </button>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="flex gap-2 overflow-x-auto border-b border-purple-900/20 pb-4 mb-6 text-xs uppercase font-bold tracking-wider">
+                <button onclick="switchTab('admin', 'tab-command')" id="btn-admin-tab-command" class="admin-tab-btn px-4 py-2 rounded bg-syndicate-500 text-white">Command (5 Slots)</button>
+                <button onclick="switchTab('admin', 'tab-inner')" id="btn-admin-tab-inner" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Inner Circle (5 Slots)</button>
+                <button onclick="switchTab('admin', 'tab-ranks-setup')" id="btn-admin-tab-ranks-setup" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Hierarchy & Ranks Configuration</button>
+                <button onclick="switchTab('admin', 'tab-certs-setup')" id="btn-admin-tab-certs-setup" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Certifications Setup</button>
+                <button onclick="switchTab('admin', 'tab-admin-docs')" id="btn-admin-tab-admin-docs" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Internal SOP Texts</button>
+                <button onclick="switchTab('admin', 'tab-turfs')" id="btn-admin-tab-turfs" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Gang Turfs</button>
+                <button onclick="switchTab('admin', 'tab-gallery')" id="btn-admin-tab-gallery" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Gallery</button>
+                <button onclick="switchTab('admin', 'tab-discord-settings')" id="btn-admin-tab-discord-settings" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Discord OAuth Setup</button>
+                <button onclick="switchTab('admin', 'tab-cloud-sync')" id="btn-admin-tab-cloud-sync" class="admin-tab-btn px-4 py-2 rounded bg-black/45 text-gray-400">Cloud Sync & Backups</button>
+            </div>
+
+            <!-- Tab: Command -->
+            <div id="tab-command" class="admin-tab-content space-y-6">
+                <h3 class="text-lg font-bold text-white border-b border-purple-950/50 pb-2">Modify Command Structure</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6" id="admin-command-list"></div>
+            </div>
+
+            <!-- Tab: Inner Circle -->
+            <div id="tab-inner" class="admin-tab-content space-y-6 hidden">
+                <h3 class="text-lg font-bold text-white border-b border-purple-950/50 pb-2">Modify Inner Circle</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6" id="admin-inner-list"></div>
+            </div>
+
+            <!-- Tab: Ranks & Categories Setup -->
+            <div id="tab-ranks-setup" class="admin-tab-content space-y-6 hidden">
+                <div class="grid lg:grid-cols-12 gap-8">
+                    <!-- Configurator Left Panel -->
+                    <div class="lg:col-span-4 bg-black/30 p-4 border border-purple-900/30 rounded-lg space-y-6">
+                        <!-- Category Form -->
+                        <div>
+                            <h4 class="font-bold text-white text-xs mb-3 uppercase tracking-wider text-purple-400">Create Rank Category</h4>
+                            <div class="space-y-3">
+                                <input type="text" id="setup-category-title" placeholder="e.g. High Command" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                                <button onclick="saveCategoryConfiguration()" class="w-full bg-purple-900 hover:bg-syndicate-500 text-white font-bold py-2 rounded text-xs uppercase tracking-wider">Save Category</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Rank Form -->
+                        <div class="border-t border-purple-950/40 pt-4">
+                            <h4 class="font-bold text-white text-xs mb-3 uppercase tracking-wider text-purple-400">Create / Edit Rank</h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-[10px] text-gray-400 block mb-1">Rank Title</label>
+                                    <input type="text" id="setup-rank-title" placeholder="e.g. Underboss" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-gray-400 block mb-1">Total Capacity (Slot Identifiers Allocated)</label>
+                                    <input type="number" id="setup-rank-capacity" placeholder="e.g. 5" min="1" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-gray-400 block mb-1">Group Category</label>
+                                    <select id="setup-rank-category" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white"></select>
+                                </div>
+                                <button onclick="saveRanksConfiguration()" class="w-full bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2 rounded text-xs uppercase tracking-wider">Save Rank Position</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Hierarchy Tree Manager -->
+                    <div class="lg:col-span-8">
+                        <h4 class="font-bold text-white text-sm mb-4 uppercase tracking-wider">Hierarchy Tree Configurator</h4>
+                        <div class="space-y-4" id="setup-hierarchy-tree"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Certs Setup -->
+            <div id="tab-certs-setup" class="admin-tab-content space-y-6 hidden">
+                <div class="grid lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-4 bg-black/30 p-4 border border-purple-900/30 rounded-lg">
+                        <h4 class="font-bold text-white text-sm mb-4 uppercase">Register Certification</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-xs text-gray-400 block mb-1">Certification Name</label>
+                                <input type="text" id="setup-cert-name" placeholder="e.g. Marksman I" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                            </div>
+                            <button onclick="addNewCertType()" class="w-full bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2 rounded text-xs uppercase tracking-wider">Save Cert</button>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-8">
+                        <h4 class="font-bold text-white text-sm mb-4 uppercase">Registered Certifications Checklist</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="setup-certs-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Internal Documents SOP Sections and PDF Uploads -->
+            <div id="tab-admin-docs" class="admin-tab-content space-y-6 hidden">
+                <h3 class="text-lg font-bold text-white border-b border-purple-950/50 pb-2">Modify Internal SOP Sections & Document PDFs</h3>
+                <div class="grid lg:grid-cols-12 gap-8">
+                    
+                    <!-- Left Column: SOP Sections Builder -->
+                    <div class="lg:col-span-8 space-y-6">
+                        <div class="bg-black/30 p-5 border border-purple-900/30 rounded-lg space-y-4">
+                            <h4 class="font-bold text-white text-xs uppercase tracking-wider text-purple-400" id="sop-form-title">Create / Edit SOP Section</h4>
+                            <input type="hidden" id="sop-edit-section-id" value="">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="text-[10px] text-gray-400 block mb-1">Section Code / Identifier</label>
+                                    <input type="text" id="sop-section-num" placeholder="e.g. 1.1" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="text-[10px] text-gray-400 block mb-1">Section Title</label>
+                                    <input type="text" id="sop-section-title" placeholder="e.g. Following PSRP Gang Rules" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-gray-400 block mb-1">Section Description / Content Text</label>
+                                <textarea id="sop-section-text" rows="5" placeholder="Enter content paragraphs here..." class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white"></textarea>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-purple-950/30 pt-3">
+                                <div>
+                                    <label class="text-[10px] text-purple-400 block mb-1 font-semibold">Optional Button Label</label>
+                                    <input type="text" id="sop-section-btnlabel" placeholder="e.g. View Dispatch Roster" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-purple-400 block mb-1 font-semibold">Optional Button Link (URL)</label>
+                                    <input type="text" id="sop-section-btnurl" placeholder="https://discord.gg/..." class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="saveSOPSection()" class="bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2 px-6 rounded text-xs uppercase tracking-wider transition-all">Save Section</button>
+                                <button id="btn-cancel-sop-edit" onclick="resetSOPSectionForm()" class="hidden bg-gray-800 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-xs uppercase tracking-wider">Cancel</button>
+                            </div>
+                        </div>
+
+                        <!-- Interactive SOP List -->
+                        <div>
+                            <h4 class="font-bold text-white text-sm mb-4 uppercase">Structured SOP Chapters & Sections</h4>
+                            <div class="space-y-3" id="setup-sop-sections-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Guides & PDFs -->
+                    <div class="lg:col-span-4 space-y-6">
+                        <div class="bg-black/35 p-6 border border-purple-900/30 rounded-lg">
+                            <h4 class="font-bold text-white text-xs uppercase tracking-wider">Standard Guide Links</h4>
+                            <p class="text-xs text-gray-400 leading-normal mb-4">Paste direct URLs to PDF files hosted elsewhere (such as Discord, Imgur, or Pinterest) to keep database sizes minimal.</p>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-xs text-gray-400 block mb-1.5 font-semibold">Approved Outfits Presentation (.pdf URL)</label>
+                                    <input type="text" id="admin-outfit-pdf-url" placeholder="e.g. https://domain.com/outfits.pdf" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-400 block mb-1.5 font-semibold">Approved Vehicle Rules Presentation (.pdf URL)</label>
+                                    <input type="text" id="admin-vehicle-pdf-url" placeholder="e.g. https://domain.com/vehicles.pdf" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                                </div>
+                                <button onclick="saveGuidesPDFUrl()" class="w-full bg-purple-900 hover:bg-syndicate-500 text-white font-bold py-2.5 rounded text-xs uppercase tracking-wider transition-all">Save Guide Links</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Turfs -->
+            <div id="tab-turfs" class="admin-tab-content space-y-6 hidden">
+                <div class="grid lg:grid-cols-12 gap-8">
+                    <div class="lg:col-span-4 bg-black/30 p-4 border border-purple-900/30 rounded-lg h-fit">
+                        <h4 class="font-bold text-white mb-4">Add New Turf</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-xs text-gray-400 block mb-1">Turf Name</label>
+                                <input type="text" id="turf-name-input" placeholder="e.g. Mirror Park Estate" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400 block mb-1">Postal (3 characters/numbers)</label>
+                                <input type="text" id="turf-postal-input" placeholder="e.g. 704" maxlength="3" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-400 block mb-1">Image URL</label>
+                                <input type="text" id="turf-img-url-input" placeholder="e.g. https://imgur.com/your-image.png" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                            </div>
+                            <button onclick="addNewTurf()" class="w-full bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2 rounded text-xs uppercase tracking-wider">Save Turf</button>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-8">
+                        <h4 class="font-bold text-white mb-4">Current Turfs</h4>
+                        <div class="grid sm:grid-cols-2 gap-4" id="admin-turfs-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Gallery -->
+            <div id="tab-gallery" class="admin-tab-content space-y-6 hidden">
+                <h3 class="text-lg font-bold text-white border-b border-purple-950/50 pb-2">Set Gallery Archives (3 Image URLs)</h3>
+                <div class="grid md:grid-cols-3 gap-6" id="admin-gallery-list"></div>
+            </div>
+
+            <!-- Tab: Discord Setup -->
+            <div id="tab-discord-settings" class="admin-tab-content space-y-6 hidden">
+                <h3 class="text-lg font-bold text-white border-b border-purple-950/50 pb-2">Discord Application settings</h3>
+                <div class="bg-black/30 p-5 rounded-lg border border-purple-900/30 max-w-xl space-y-4">
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        To enable direct client login through official Discord Auth Redirect, create an application in the 
+                        <a href="https://discord.com/developers/applications" target="_blank" class="text-syndicate-500 underline font-semibold">Discord Developer Portal</a>. 
+                        Add your current URL address to the <strong>OAuth2 Redirects</strong> list in Discord.
+                    </p>
+                    <div>
+                        <label class="text-xs text-gray-300 block mb-1">Discord Client ID</label>
+                        <input type="text" id="setup-discord-client-id" placeholder="e.g. 10145880495..." class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                    </div>
+                    <button onclick="saveDiscordClientId()" class="bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2 px-6 rounded text-xs uppercase tracking-wider transition-all">Save Client ID Settings</button>
+                </div>
+            </div>
+
+            <!-- Tab: Cloud Sync -->
+            <div id="tab-cloud-sync" class="admin-tab-content space-y-6 hidden">
+                <h3 class="text-lg font-bold text-white border-b border-purple-950/50 pb-2">GitHub Database Synchronization</h3>
+                <div class="grid md:grid-cols-12 gap-8">
+                    <!-- Configurator Left Panel (7 Cols) -->
+                    <div class="md:col-span-7 bg-black/30 p-5 border border-purple-900/30 rounded-lg space-y-6">
+                        <div class="space-y-2">
+                            <h4 class="font-bold text-purple-400 text-xs uppercase tracking-wider font-semibold">GitHub database.json Sync Manager</h4>
+                            <p class="text-xs text-gray-300 leading-relaxed">
+                                To make your roster modifications visible to other devices globally with 100% stability, your website reads directly from a static file called <strong>`database.json`</strong> stored in your GitHub project folder.
+                            </p>
+                            <div class="bg-purple-950/20 p-4 rounded text-xs text-purple-300 leading-relaxed border border-purple-900/30 space-y-3">
+                                <strong>How to Save & Deploy Changes:</strong>
+                                <ol class="list-decimal pl-4 space-y-1 text-purple-200">
+                                    <li>Make all your roster edits, command spots, turf edits, and SOP section edits inside this portal.</li>
+                                    <li>Switch to this tab, click the blue **Copy Database Code** button below.</li>
+                                    <li>Open your GitHub repository in a new browser tab, edit your **`database.json`** file, paste the copied code, and click **Commit changes**.</li>
+                                    <li>Vercel will deploy the file in seconds. Everyone globally will see your new roster immediately!</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 pt-2 border-t border-purple-950/40">
+                            <button onclick="copyDatabaseCodeToClipboard()" class="w-full bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2.5 rounded text-xs uppercase tracking-wider transition-all">
+                                <i class="fas fa-copy mr-1.5"></i> Copy Database Code
+                            </button>
+                            <textarea id="database-json-textarea" readonly rows="8" class="w-full bg-black/40 border border-purple-900/30 rounded p-3 text-[10px] text-gray-400 font-mono focus:outline-none"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Manual Controls Panel (5 Cols) -->
+                    <div class="md:col-span-5 space-y-6">
+                        <div class="bg-black/30 p-5 border border-purple-900/30 rounded-lg space-y-4">
+                            <h4 class="font-bold text-white text-xs uppercase tracking-wider">Manual Offline Backups (.json)</h4>
+                            <p class="text-[11px] text-gray-400">Save a physical backup file of your setup to your computer, or restore a backup file directly.</p>
+                            
+                            <div class="space-y-3">
+                                <button onclick="exportBackupFile()" class="w-full bg-emerald-950/60 hover:bg-emerald-900/70 border border-emerald-900 text-emerald-300 font-bold py-2 rounded text-xs uppercase tracking-wider transition-all"><i class="fas fa-file-export mr-1.5"></i> Export Backup File</button>
+                                
+                                <div class="border-t border-purple-950/30 pt-3 space-y-2">
+                                    <label class="text-[10px] text-gray-400 block font-semibold">Restore / Import Backup File</label>
+                                    <input type="file" id="backup-file-input" accept=".json" class="w-full text-xs text-gray-400 file:bg-syndicate-500 file:border-none file:px-2.5 file:py-1 file:text-white file:rounded file:mr-2">
+                                    <button onclick="importBackupFile()" class="w-full bg-purple-900/40 hover:bg-purple-900 border border-purple-800 text-white font-bold py-2 rounded text-xs uppercase tracking-wider transition-all">Import File</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- ROSTER MANAGEMENT INTERACTIVE PORTAL MODAL -->
+    <div id="roster-portal" class="fixed inset-0 bg-black/95 overflow-y-auto hidden z-50 p-4 md:p-8">
+        <div class="max-w-6xl mx-auto bg-syndicate-card border border-purple-900/60 rounded-xl p-6 md:p-8 relative">
+            <div class="flex justify-between items-center border-b border-purple-900/40 pb-4 mb-6">
+                <div>
+                    <h2 class="serif-font text-2xl font-bold text-white">TSF ROSTER MANAGEMENT</h2>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="text-xs text-syndicate-500 font-semibold tracking-wider">Manage Family Personnel, Certs, & Conduct Records</span>
+                        <span class="text-gray-600">|</span>
+                        <div id="roster-logged-user-display" class="flex items-center gap-1.5 text-xs text-purple-400"></div>
+                    </div>
+                </div>
+                <button onclick="closeRosterPortal()" class="bg-red-950/40 hover:bg-red-800 text-white px-4 py-2 rounded text-xs uppercase tracking-wider font-bold transition-colors">
+                    <i class="fas fa-sign-out-alt"></i> Exit Roster Portal
+                </button>
+            </div>
+
+            <div class="grid lg:grid-cols-12 gap-8">
+                <!-- Add Roster Member Form -->
+                <div class="lg:col-span-4 bg-black/40 p-5 rounded-lg border border-purple-900/30">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4" id="roster-form-title">Assign Personnel to Roster</h3>
+                    <div class="space-y-4">
+                        <input type="hidden" id="roster-edit-member-id" value="">
+                        <div>
+                            <label class="text-[11px] text-gray-400 block mb-1">Roster Rank</label>
+                            <select id="roster-member-rank" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white" onchange="updateDynamicIdentifierLimits()"></select>
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-gray-400 block mb-1">Active Slot Identifier (Range: <span id="dynamic-rank-range" class="text-syndicate-500 font-bold">-</span>)</label>
+                            <input type="number" id="roster-member-identifier" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white" placeholder="Specific slot number within rank limits">
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-gray-400 block mb-1">Name</label>
+                            <input type="text" id="roster-member-name" placeholder="e.g. A. Anderson" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-gray-400 block mb-1">Discord Name/ID</label>
+                            <input type="text" id="roster-member-discord" placeholder="e.g. handle#0000" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-gray-400 block mb-1">Discord Numerical User ID (Mandatory for @pings)</label>
+                            <input type="text" id="roster-member-numeric-id" placeholder="e.g. 1526588361492533331" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[11px] text-gray-400 block mb-1">Join Date</label>
+                                <input type="date" id="roster-member-joindate" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-gray-400 block mb-1">Promo Date</label>
+                                <input type="date" id="roster-member-promodate" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-gray-400 block mb-1">Duty Status</label>
+                            <select id="roster-member-status" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                                <option value="Active">Active</option>
+                                <option value="Vacant">Vacant</option>
+                                <option value="LOA">LOA</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Dynamic Cert Checklist inside Roster Management -->
+                        <div>
+                            <label class="text-[11px] text-gray-400 block mb-2 font-bold uppercase tracking-wider">Select Acquired Certifications</label>
+                            <div class="bg-black/50 p-3 rounded border border-purple-900/25 max-h-32 overflow-y-auto space-y-2 text-xs" id="roster-certs-checks"></div>
+                        </div>
+
+                        <!-- Punishment Checklist inside Roster Management -->
+                        <div>
+                            <label class="text-[11px] text-gray-400 block mb-2 font-bold uppercase tracking-wider">Sanctions & Records</label>
+                            <div class="bg-black/50 p-3 rounded border border-purple-900/25 grid grid-cols-2 gap-3 text-xs">
+                                <div>
+                                    <label class="text-[10px] text-gray-400 block mb-1">Warning Level</label>
+                                    <select id="roster-punish-warning" class="w-full bg-black border border-purple-900/20 rounded p-1 text-[11px]">
+                                        <option value="0">Clean</option>
+                                        <option value="1">Warning 1</option>
+                                        <option value="2">Warning 2</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[10px] text-gray-400 block mb-1">Strike Level</label>
+                                    <select id="roster-punish-strike" class="w-full bg-black border border-purple-900/20 rounded p-1 text-[11px]">
+                                        <option value="0">Clean</option>
+                                        <option value="1">Strike 1</option>
+                                        <option value="2">Strike 2</option>
+                                        <option value="Blacklisted">Blacklist</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-2">
+                                    <label class="text-[10px] text-gray-400 block mb-1">Internal Log Notes</label>
+                                    <textarea id="roster-punish-notes" rows="2" placeholder="Conduct remarks / incident files..." class="w-full bg-black border border-purple-900/20 rounded p-1.5 text-[11px] text-white"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <button onclick="saveRosterMember()" class="flex-1 bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2.5 rounded text-xs uppercase tracking-wider">Submit Entry</button>
+                            <button id="btn-cancel-roster-edit" onclick="resetRosterForm()" class="hidden bg-gray-800 hover:bg-gray-700 text-white font-bold py-2.5 px-4 rounded text-xs uppercase tracking-wider">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Roster View -->
+                <div class="lg:col-span-8">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Active Roster Personnel</h3>
+                    <div class="space-y-4 max-h-[700px] overflow-y-auto pr-2" id="roster-manage-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN WEBSITE ROSTER VIEWER MODAL -->
+    <div id="roster-viewer-modal" class="fixed inset-0 bg-black/95 overflow-y-auto hidden z-50 p-4 md:p-8">
+        <div class="max-w-5xl mx-auto bg-syndicate-card border border-purple-900/60 rounded-xl p-6 relative">
+            <button onclick="closeRosterViewer()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl"><i class="fas fa-times"></i></button>
+            <div class="text-center mb-8 border-b border-purple-900/30 pb-6">
+                <h2 class="serif-font text-3xl font-bold text-white">THE SYNDICATE ROSTER</h2>
+                <span class="text-xs text-syndicate-500 uppercase font-semibold tracking-widest">Active State Registry & Credentials</span>
+            </div>
+            
+            <div class="space-y-6" id="public-roster-grid"></div>
+        </div>
+    </div>
+
+    <!-- USER DETAILED PROFILE MODAL -->
+    <div id="member-detail-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+        <div class="bg-syndicate-card border border-purple-900/70 p-6 rounded-lg w-full max-w-md relative">
+            <button onclick="closeMemberDetails()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg"><i class="fas fa-times"></i></button>
+            <div id="member-detail-content"></div>
+        </div>
+    </div>
+
+    <!-- DOCUMENT VIEWER MODAL (STYLIZED INTUITIVE CREAM DESIGN) -->
+    <div id="documents-viewer-modal" class="fixed inset-0 bg-black/90 overflow-y-auto hidden z-50 p-2 md:p-6">
+        <div class="max-w-4xl mx-auto sop-container rounded-lg relative shadow-2xl border border-amber-900/20 overflow-hidden">
+            <!-- Modal Header / Close Actions -->
+            <div class="flex justify-between items-center bg-purple-950 px-6 py-4 text-white">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full border border-purple-300 flex items-center justify-center bg-purple-900 text-xs text-purple-200">𝔖</div>
+                    <span class="serif-font font-black tracking-wider text-sm">THE SYNDICATE FAMILY</span>
+                </div>
+                <button onclick="closeDocumentsViewer()" class="text-gray-300 hover:text-white text-lg"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Documents Panel Grid -->
+            <div class="grid md:grid-cols-12 min-h-[600px]">
+                <div class="md:col-span-4 bg-[#decb9f] border-r border-amber-900/10 p-6">
+                    <h3 class="sop-serif font-black text-xs tracking-wider uppercase mb-6 border-b border-purple-950/20 pb-2">Document Index</h3>
+                    <ul class="space-y-4 text-xs font-semibold text-purple-950">
+                        <li>
+                            <button onclick="switchSOPChapter('rules')" id="btn-chapter-rules" class="flex items-center gap-2 hover:text-syndicate-500 text-left w-full text-purple-900 font-bold">
+                                <i class="fas fa-gavel"></i> 1.1 Gang Codes & Rules
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="switchSOPChapter('outfits')" id="btn-chapter-outfits" class="flex items-center gap-2 hover:text-syndicate-500 text-left w-full">
+                                <i class="fas fa-user-tie"></i> 2.1 Uniform Guidelines
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="switchSOPChapter('vehicles')" id="btn-chapter-vehicles" class="flex items-center gap-2 hover:text-syndicate-500 text-left w-full">
+                                <i class="fas fa-car"></i> 2.2 Vehicle Fleet Policy
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="mt-20 text-center opacity-40">
+                        <span class="text-[10px] uppercase font-black tracking-widest block text-purple-950">A. Anderson / 01</span>
+                    </div>
+                </div>
+
+                <!-- Cream Dossier Sheets Content Area -->
+                <div class="md:col-span-8 p-8 relative min-h-[500px] flex flex-col justify-between">
+                    <div id="sop-chapter-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN JAVASCRIPT STATE AND FUNCTIONS -->
+    <script>
+        // Self-Healing Startup Script: Wipe out any old localStorage conflicts with old structures
+        const localStateRaw = localStorage.getItem('tsf_state');
+        if (localStateRaw) {
+            try {
+                const parsed = JSON.parse(localStateRaw);
+                // Force load fresh connection credentials if using legacy JSONBin config
+                if (parsed.cloudSyncUrl && parsed.cloudSyncUrl.includes("jsonbin.io")) {
+                    console.log("Self-healing: Cleaning up old JSONBin settings.");
+                    localStorage.removeItem('tsf_state');
+                    localStorage.removeItem('tsf_discord_user');
+                    sessionStorage.clear();
+                    window.location.reload();
+                }
+            } catch (e) {
+                console.error("Self-healing error:", e);
+            }
+        }
+
+        // Core Configured System Credentials & Webhooks
+        const CODES = {
+            admin: "TSF#ADMIN!26",
+            roster: "TSF-Roster-26"
+        };
+
+        const WEBHOOKS = {
+            logs: "https://discord.com/api/webhooks/1526588065923989607/C-Kz75qfWxHFkY3ZANKcPy0XeKqaltGW7COX98vnf7YBurvO4FDa4yOYpI00tAg_x2mS",
+            roster: "https://discord.com/api/webhooks/1526588361492533331/-M5Cv6VUbwI9LDSxS1-Yx_hE2zsbXJqB8eDBG4eDXWJVa4VXCIVsgPWr7_NLEO4vp0xZ"
+        };
+
+        // Complete Default State Setup
+        const DEFAULT_STATE = {
+            command: [
+                { role: "Leading Commissioner", name: "Vacant", img: "" },
+                { role: "Executive Commissioner", name: "Vacant", img: "" },
+                { role: "Asst. Executive Commissioner", name: "Vacant", img: "" },
+                { role: "Commissioner", name: "Vacant", img: "" },
+                { role: "Asst. Commissioner", name: "Vacant", img: "" }
+            ],
+            innerCircle: [
+                { role: "Inner Circle Spot 1", name: "Vacant", img: "" },
+                { role: "Inner Circle Spot 2", name: "Vacant", img: "" },
+                { role: "Inner Circle Spot 3", name: "Vacant", img: "" },
+                { role: "Inner Circle Spot 4", name: "Vacant", img: "" },
+                { role: "Inner Circle Spot 5", name: "Vacant", img: "" }
+            ],
+            turfs: [
+                { postal: "704", name: "Vespucci HQ", img: "" },
+                { postal: "412", name: "Mirror Park Compound", img: "" }
+            ],
+            gallery: ["", "", ""],
+            categories: [
+                { id: "cat-1", title: "Commission HQ" },
+                { id: "cat-2", title: "Inner Circle Division" },
+                { id: "cat-3", title: "Enforcers & Crew" }
+            ],
+            ranks: [
+                { id: "r1", title: "Leading Commissioner", capacity: 5, categoryId: "cat-1" },
+                { id: "r2", title: "Executive Commissioner", capacity: 6, categoryId: "cat-1" },
+                { id: "r3", title: "Asst. Executive Commissioner", capacity: 10, categoryId: "cat-2" },
+                { id: "r4", title: "Commissioner", capacity: 15, categoryId: "cat-3" },
+                { id: "r5", title: "Asst. Commissioner", capacity: 20, categoryId: "cat-3" }
+            ],
+            certs: ["Combat Operations", "High Speed Driving", "Tactical Comms", "Executive Escort", "Heavy Arms Specialist"],
+            members: [],
+            documents: {
+                sopSections: [
+                    {
+                        id: "sec-1",
+                        num: "1.1",
+                        title: "Following PSRP Gang Rules",
+                        text: "All members must strictly enforce server Rules. Out of character disputes must never bleed into operations.",
+                        btnLabel: "Official Discord",
+                        btnUrl: "https://discord.gg/wsErXv86QQ"
+                    },
+                    {
+                        id: "sec-2",
+                        num: "1.2",
+                        title: "Command Directives",
+                        text: "Decisions made by the leading commission are absolute. Subordinate personnel must execute directives without question.",
+                        btnLabel: "",
+                        btnUrl: ""
+                    }
+                ],
+                outfitPdf: "",
+                vehiclePdf: ""
+            },
+            discordClientId: ""
+        };
+
+        let state = JSON.parse(localStorage.getItem('tsf_state')) || DEFAULT_STATE;
+        
+        // Quick State Migrations/Safeguards for older storage structures
+        if(!state.categories) state.categories = DEFAULT_STATE.categories;
+        if(!state.ranks) state.ranks = DEFAULT_STATE.ranks;
+        if(!state.certs) state.certs = DEFAULT_STATE.certs;
+        if(!state.members) state.members = DEFAULT_STATE.members;
+        if(!state.documents) state.documents = DEFAULT_STATE.documents;
+        if(state.discordClientId === undefined) state.discordClientId = "";
+
+        // Ensure rank migrations have assigned categories
+        state.ranks.forEach(r => {
+            if(!r.categoryId) {
+                r.categoryId = state.categories[0] ? state.categories[0].id : "cat-1";
+            }
+        });
+
+        let activePortalMode = ""; // Either 'admin' or 'roster'
+        let currentUser = JSON.parse(sessionStorage.getItem('tsf_discord_user')) || null;
+
+        // Save State locally inside browser and update displays
+        function saveState() {
+            try {
+                localStorage.setItem('tsf_state', JSON.stringify(state));
+                renderWebsite();
+                updateDatabaseCodeField(); // Instantly update database.json display box
+                return true;
+            } catch (err) {
+                console.error("Storage Error:", err);
+                alert("Failed to save data: " + err.message);
+                return false;
+            }
+        }
+
+        /* 
+           ============= GITHUB STATIC database.json ENGINE =============
+        */
+        function loadStateFromCloud() {
+            const statusIndicator = document.getElementById('cloud-sync-status');
+            if (statusIndicator) {
+                statusIndicator.classList.remove('hidden');
+                statusIndicator.classList.add('flex');
+                statusIndicator.innerHTML = `<i class="fas fa-spinner fa-spin mr-1"></i> Syncing...`;
+                statusIndicator.className = "flex items-center gap-1.5 text-xs text-amber-400 font-semibold bg-amber-950/30 px-3 py-1 rounded border border-amber-900/30";
+            }
+
+            // Fetch database.json locally from your Vercel deployment folder
+            const xhr = new XMLHttpRequest();
+            xhr.open("GET", "database.json", true);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const cloudData = JSON.parse(xhr.responseText);
+                            
+                            if (cloudData && (cloudData.command || cloudData.members)) {
+                                // Smart startup safeguard
+                                const localHasData = state.members && state.members.length > 0;
+                                const localHasCommand = state.command && state.command.some(c => c.name && c.name !== "Vacant");
+                                const cloudIsEmpty = (!cloudData.members || cloudData.members.length === 0) && 
+                                                     (!cloudData.command || cloudData.command.every(c => !c.name || c.name === "Vacant"));
+
+                                if ((localHasData || localHasCommand) && cloudIsEmpty) {
+                                    console.log("Startup Guard: Local browser has custom roster data, but cloud database.json is empty. Copy-paste your database code to GitHub!");
+                                    renderWebsite();
+                                    updateDatabaseCodeField();
+                                    if (statusIndicator) {
+                                        statusIndicator.innerHTML = `<i class="fas fa-exclamation-triangle text-amber-400"></i> Local Changes Active`;
+                                        statusIndicator.className = "flex items-center gap-1.5 text-xs text-amber-400 font-semibold bg-amber-950/30 px-3 py-1 rounded border border-amber-900/30";
+                                    }
+                                    return;
+                                }
+
+                                state = cloudData;
+                                localStorage.setItem('tsf_state', JSON.stringify(state));
+                                renderWebsite();
+                                updateDatabaseCodeField();
+                                if (statusIndicator) {
+                                    statusIndicator.innerHTML = `<i class="fas fa-check-circle text-emerald-400"></i> Synced with GitHub`;
+                                    statusIndicator.className = "flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-950/30 px-3 py-1 rounded border border-emerald-900/30 font-bold";
+                                }
+                            }
+                        } catch (e) {
+                            console.error("Error parsing cloud JSON:", e);
+                            renderWebsite();
+                            updateDatabaseCodeField();
+                        }
+                    } else {
+                        console.warn("Could not find database.json on Vercel yet. Falling back to local browser memory.");
+                        renderWebsite();
+                        updateDatabaseCodeField();
+                        if (statusIndicator) {
+                            statusIndicator.innerHTML = `<i class="fas fa-exclamation-triangle text-amber-400"></i> Local Backup Active`;
+                            statusIndicator.className = "flex items-center gap-1.5 text-xs text-amber-400 font-semibold bg-amber-950/30 px-3 py-1 rounded border border-amber-900/30";
+                        }
+                    }
+                }
+            };
+
+            xhr.send();
+        }
+
+        // Updates the copy-paste box inside the Admin panel
+        function updateDatabaseCodeField() {
+            const textarea = document.getElementById('database-json-textarea');
+            if (textarea) {
+                textarea.value = JSON.stringify(state, null, 2);
+            }
+        }
+
+        function copyDatabaseCodeToClipboard() {
+            const textarea = document.getElementById('database-json-textarea');
+            if (textarea) {
+                textarea.select();
+                textarea.setSelectionRange(0, 99999); // For mobile devices
+                navigator.clipboard.writeText(textarea.value)
+                    .then(() => alert("✅ Database Code copied to clipboard!\n\nOpen your GitHub repository, edit 'database.json', paste this code, and commit changes."))
+                    .catch(err => alert("Failed to copy code: " + err));
+            }
+        }
+
+        /* 
+           ============= REORDERING HELPER FUNCTIONS =============
+        */
+        function moveItemInArray(arr, index, direction) {
+            const targetIdx = index + direction;
+            if (targetIdx < 0 || targetIdx >= arr.length) return;
+            const temp = arr[index];
+            arr[index] = arr[targetIdx];
+            arr[targetIdx] = temp;
+        }
+
+        /*
+           ============= PDF UTILITIES (BLOB OBJECT URL BINDING) =============
+        */
+        function dataURLtoBlobURL(dataURL) {
+            if (!dataURL) return null;
+            try {
+                const arr = dataURL.split(','), mime = arr[0].match(/:(.*?);/)[1];
+                const bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+                let i = n;
+                while(i--) {
+                    u8arr[i] = bstr.charCodeAt(i);
+                }
+                const blob = new Blob([u8arr], {type:mime});
+                return URL.createObjectURL(blob);
+            } catch (err) {
+                console.error("Failed conversion to local Blob url:", err);
+                return null;
+            }
+        }
+
+        /* 
+           ============= DISCORD WEBHOOK INTEGRATION INTEGRITY =============
+        */
+        async function fireDiscordWebhook(url, payload) {
+            console.log("Dispatching Discord Webhook Payload:", payload);
+            try {
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`Discord API returned error code ${response.status}: ${errorText}`);
+                } else {
+                    console.log("Discord Webhook successfully delivered.");
+                }
+            } catch(err) {
+                console.error("Webhook Network Delivery Failed:", err);
+            }
+        }
+
+        function createWebhookEmbed(title, description, color, fields = []) {
+            const operatorStr = currentUser 
+                ? `**${currentUser.username}** (ID: ${currentUser.id})` 
+                : "System Task";
+                
+            return {
+                title: title,
+                description: description,
+                color: color || 6501115, // Custom TSF Purple
+                fields: [
+                    ...fields,
+                    { name: "Logged Operator", value: operatorStr, inline: true },
+                    { name: "Time Event", value: `<t:${Math.floor(Date.now() / 1000)}:f>`, inline: true }
+                ],
+                footer: { text: "The Syndicate Family Audit System | TSF Mafia" },
+                timestamp: new Date().toISOString()
+            }
+        }
+
+        function logAdminAction(actionName, details) {
+            const embed = createWebhookEmbed(
+                "⚙️ Administrative Policy Modification",
+                `System change triggered in administration space.`,
+                6501115,
+                [
+                    { name: "Modified Item", value: `**${actionName}**`, inline: true },
+                    { name: "Modification Summary", value: details || "N/A", inline: false }
+                ]
+            );
+            fireDiscordWebhook(WEBHOOKS.logs, { embeds: [embed] });
+        }
+
+        function logRosterMovement(memberName, actionTitle, rankTitle, identifierVal, targetDiscordId, notes = "") {
+            const cleanId = formatIdentifier(identifierVal);
+            const fields = [
+                { name: "Assigned Operative", value: `**${memberName}**`, inline: true },
+                { name: "Assigned Rank", value: rankTitle, inline: true },
+                { name: "Sequential Identifier", value: `Slot **${cleanId}**`, inline: true },
+                { name: "Roster Movement", value: `**${actionTitle}**`, inline: false }
+            ];
+
+            if (notes) {
+                fields.push({ name: "Operation Log Entries", value: notes, inline: false });
+            }
+
+            const clientPingContent = (targetDiscordId && /^\d+$/.test(targetDiscordId)) 
+                ? `🚨 **Roster Movement Alert:** <@${targetDiscordId}>` 
+                : "";
+
+            const embed = createWebhookEmbed(
+                "📁 Roster Registry Modification",
+                "Updates committed to gang personnel directories.",
+                9383835, // High contrast fuchsia
+                fields
+            );
+
+            fireDiscordWebhook(WEBHOOKS.roster, {
+                content: clientPingContent,
+                embeds: [embed]
+            });
+        }
+
+        /* 
+           ============= DISCORD AUTHENTICATION MECHANISMS =============
+        */
+        function requireDiscordSession(callback) {
+            if(currentUser) {
+                callback();
+            } else {
+                openDiscordAuthModal();
+            }
+        }
+
+        function openDiscordAuthModal() {
+            const modal = document.getElementById('discord-auth-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            const failsafeArea = document.getElementById('discord-setup-failsafe');
+            if (!state.discordClientId) {
+                failsafeArea.classList.remove('hidden');
+            } else {
+                failsafeArea.classList.add('hidden');
+            }
+        }
+
+        function closeDiscordAuthModal() {
+            document.getElementById('discord-auth-modal').classList.remove('flex');
+            document.getElementById('discord-auth-modal').classList.add('hidden');
+        }
+
+        function saveFailsafeClientId() {
+            const val = document.getElementById('failsafe-discord-client-id').value.trim();
+            if (!val) {
+                alert("Please enter a valid Client ID.");
+                return;
+            }
+            state.discordClientId = val;
+            if (saveState()) {
+                alert("Client ID saved. You can now use the Discord OAuth authentication flow.");
+                openDiscordAuthModal();
+            }
+        }
+
+        function triggerDiscordOAuthRedirect() {
+            const clientId = state.discordClientId || DEFAULT_STATE.discordClientId;
+            if(!clientId) {
+                alert("No Discord OAuth Client ID configured. Please configure it inside the setup container.");
+                return;
+            }
+
+            const redirectUri = encodeURIComponent(window.location.href.split('#')[0]);
+            const scopes = "identify";
+            const responseType = "token";
+            const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=${responseType}&scope=${scopes}`;
+            
+            window.location.href = authUrl;
+        }
+
+        function checkDiscordOAuthHash() {
+            const fragment = window.location.hash;
+            if(fragment && fragment.includes("access_token=")) {
+                const params = new URLSearchParams(fragment.substring(1));
+                const accessToken = params.get("access_token");
+
+                fetch("https://discord.com/api/users/@me", {
+                    headers: { "Authorization": `Bearer ${accessToken}` }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if(data.id) {
+                        currentUser = {
+                            username: `${data.username}`,
+                            id: data.id,
+                            avatar: data.avatar ? `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png` : ""
+                        };
+                        sessionStorage.setItem('tsf_discord_user', JSON.stringify(currentUser));
+                        window.history.replaceState(null, null, window.location.pathname);
+                        logAdminAction("Admin OAuth Login Success", `Authenticated through Discord OAuth Application`);
+                        
+                        if (activePortalMode === "admin") {
+                            openAdminPortal();
+                        } else if (activePortalMode === "roster") {
+                            openRosterPortal();
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error("OAuth Profile Lookup Failed:", err);
+                });
+            }
+        }
+
+        function openAccessCodeModal(mode) {
+            activePortalMode = mode;
+            document.getElementById('access-code-input').value = "";
+            const titleEl = document.getElementById('login-modal-title');
+            const descEl = document.getElementById('login-modal-desc');
+
+            if(mode === "admin") {
+                titleEl.textContent = "Admin Portal Access";
+                descEl.textContent = "Access authorization panel for settings, maps, and command configuration.";
+            } else {
+                titleEl.textContent = "Roster Administration";
+                descEl.textContent = "Authorized management only. Input roster security clearance.";
+            }
+
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('login-modal').classList.add('flex');
+        }
+
+        function closeAccessCodeModal() {
+            document.getElementById('login-modal').classList.remove('flex');
+            document.getElementById('login-modal').classList.add('hidden');
+        }
+
+        function verifyAccessCode() {
+            const code = document.getElementById('access-code-input').value;
+            if(activePortalMode === "admin" && code === CODES.admin) {
+                closeAccessCodeModal();
+                requireDiscordSession(openAdminPortal);
+            } else if(activePortalMode === "roster" && code === CODES.roster) {
+                closeAccessCodeModal();
+                requireDiscordSession(openRosterPortal);
+            } else {
+                alert("Unauthorized clearance code.");
+            }
+        }
+
+        function openAdminPortal() {
+            document.getElementById('admin-portal').classList.remove('hidden');
+            document.getElementById('admin-logged-user-display').innerHTML = `
+                <i class="fab fa-discord"></i> Logged in: <strong>${currentUser.username}</strong>
+            `;
+            renderAdminPanel();
+        }
+        function closeAdminPortal() {
+            document.getElementById('admin-portal').classList.add('hidden');
+        }
+        function openRosterPortal() {
+            document.getElementById('roster-portal').classList.remove('hidden');
+            document.getElementById('roster-logged-user-display').innerHTML = `
+                <i class="fab fa-discord"></i> Logged in: <strong>${currentUser.username}</strong>
+            `;
+            renderRosterPanel();
+        }
+        function closeRosterPortal() {
+            document.getElementById('roster-portal').classList.add('hidden');
+        }
+
+        function switchTab(portalPrefix, tabId) {
+            document.querySelectorAll(`.${portalPrefix}-tab-content`).forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            document.querySelectorAll(`.${portalPrefix}-tab-btn`).forEach(btn => {
+                btn.classList.remove('bg-syndicate-500', 'text-white');
+                btn.classList.add('bg-black/45', 'text-gray-400');
+            });
+            document.getElementById('btn-' + portalPrefix + '-' + tabId).classList.remove('bg-black/45', 'text-gray-400');
+            document.getElementById('btn-' + portalPrefix + '-' + tabId).classList.add('bg-syndicate-500', 'text-white');
+        }
+
+        function getRankRanges(rankIndex) {
+            let offset = 1;
+            for(let i=0; i < state.ranks.length; i++) {
+                let start = offset;
+                let end = offset + state.ranks[i].capacity - 1;
+                if(i === rankIndex) {
+                    return { start, end };
+                }
+                offset = end + 1;
+            }
+            return { start: 1, end: 100 };
+        }
+
+        function formatIdentifier(num) {
+            return String(num).padStart(2, '0');
+        }
+
+        function updateDynamicIdentifierLimits() {
+            const selectEl = document.getElementById('roster-member-rank');
+            const targetRankId = selectEl.value;
+            if(!targetRankId) return;
+            const rankIndex = state.ranks.findIndex(r => r.id === targetRankId);
+            const range = getRankRanges(rankIndex);
+            
+            document.getElementById('dynamic-rank-range').textContent = `${formatIdentifier(range.start)} - ${formatIdentifier(range.end)}`;
+            const inputEl = document.getElementById('roster-member-identifier');
+            inputEl.min = range.start;
+            inputEl.max = range.end;
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const icon = document.getElementById('menu-icon');
+            if(menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                icon.className = "fas fa-times";
+            } else {
+                menu.classList.add('hidden');
+                icon.className = "fas fa-bars";
+            }
+        }
+
+        /* 
+           ============= PUBLIC WEBSITE VIEWS RENDERING =============
+        */
+        function renderWebsite() {
+            // Render Live Cloud Sync Badge status in header
+            const statusIndicator = document.getElementById('cloud-sync-status');
+            if (statusIndicator) {
+                statusIndicator.classList.remove('hidden');
+                statusIndicator.classList.add('flex');
+                statusIndicator.innerHTML = `<i class="fas fa-check-circle text-emerald-400"></i> Cloud Synced`;
+                statusIndicator.className = "flex items-center gap-1.5 text-[10px] text-emerald-400 font-semibold bg-emerald-950/30 px-3 py-1 rounded border border-emerald-900/30 mr-1";
+            }
+
+            // Render Command Panel
+            const commandGrid = document.getElementById('command-grid');
+            commandGrid.innerHTML = state.command.map((member, i) => `
+                <div class="bg-black/55 border border-purple-900/20 hover:border-syndicate-500/55 p-4 rounded text-center transition-all group">
+                    <div class="w-24 h-24 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-syndicate-500">
+                        <img src="${member.img || 'https://placehold.co/150x150/1a1a1a/63207b?text=TSF'}" alt="${member.role}" class="w-full h-full object-cover">
+                    </div>
+                    <span class="block text-xs uppercase tracking-widest text-syndicate-500 font-bold mb-1">${member.role}</span>
+                    <span class="block font-semibold text-white tracking-wide">${member.name || 'Vacant'}</span>
+                </div>
+            `).join('');
+
+            // Render Inner Circle
+            const innerGrid = document.getElementById('inner-circle-grid');
+            innerGrid.innerHTML = state.innerCircle.map((member, i) => `
+                <div class="bg-black/55 border border-purple-900/20 hover:border-syndicate-500/55 p-4 rounded text-center transition-all group">
+                    <div class="w-20 h-20 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-syndicate-500">
+                        <img src="${member.img || 'https://placehold.co/150x150/1a1a1a/63207b?text=TSF'}" alt="Inner Circle" class="w-full h-full object-cover">
+                    </div>
+                    <span class="block text-xs uppercase tracking-widest text-syndicate-500 font-bold mb-1">Inner Circle</span>
+                    <span class="block font-semibold text-white tracking-wide">${member.name || 'Vacant'}</span>
+                </div>
+            `).join('');
+
+            // Render Turfs
+            const turfsGrid = document.getElementById('turfs-grid');
+            if (state.turfs.length === 0) {
+                turfsGrid.innerHTML = `<div class="col-span-full text-center text-xs text-gray-500 py-8 italic">No safe zones currently registered.</div>`;
+            } else {
+                turfsGrid.innerHTML = state.turfs.map((turf) => `
+                    <div class="bg-black/55 border border-purple-900/20 hover:border-syndicate-500/55 rounded-lg overflow-hidden transition-all flex flex-col justify-between">
+                        <div class="h-40 bg-purple-950/20 overflow-hidden relative border-b border-purple-950/40">
+                            <img src="${turf.img || 'https://placehold.co/400x250/1a1a1a/63207b?text=TSF+TURF'}" alt="${turf.name}" class="w-full h-full object-cover">
+                            <span class="absolute top-2 right-2 bg-syndicate-500 text-white font-bold text-[10px] px-2 py-0.5 rounded tracking-wide">POSTAL ${turf.postal}</span>
+                        </div>
+                        <div class="p-4 text-center">
+                            <span class="serif-font font-bold text-white text-sm tracking-wider uppercase block">${turf.name}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Render Gallery
+            const galleryGrid = document.getElementById('gallery-grid');
+            galleryGrid.innerHTML = state.gallery.map((img, i) => `
+                <div class="aspect-video bg-black/55 border border-purple-900/20 rounded overflow-hidden relative group">
+                    <img src="${img || 'https://placehold.co/600x400/1a1a1a/63207b?text=Slot+'+(i+1)}" alt="TSF Moment" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                </div>
+            `).join('');
+        }
+
+        /* 
+           ============= ACTIONS: PORTAL ADMINISTRATION SETTINGS =============
+        */
+        function saveAdminCommand(index) {
+            const name = document.getElementById(`cmd-name-${index}`).value;
+            const urlInput = document.getElementById(`cmd-img-url-${index}`);
+            state.command[index].name = name;
+            state.command[index].img = urlInput.value.trim();
+
+            if (saveState()) {
+                logAdminAction("Command Roster Spot Modified", `Assigned slot ${index+1} (**${state.command[index].role}**) to **${name}**`);
+                alert("Command spot saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+            }
+        }
+
+        function saveAdminInner(index) {
+            const name = document.getElementById(`inner-name-${index}`).value;
+            const urlInput = document.getElementById(`inner-img-url-${index}`);
+            state.innerCircle[index].name = name;
+            state.innerCircle[index].img = urlInput.value.trim();
+
+            if (saveState()) {
+                logAdminAction("Inner Circle Spot Modified", `Assigned slot ${index+1} to **${name}**`);
+                alert("Inner circle saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+            }
+        }
+
+        function addNewTurf() {
+            const name = document.getElementById('turf-name-input').value.trim();
+            const postal = document.getElementById('turf-postal-input').value.trim();
+            const urlInput = document.getElementById('turf-img-url-input');
+
+            if(!name || !postal) {
+                alert("Provide active Turf name & Postal zones.");
+                return;
+            }
+
+            const newTurf = { name, postal, img: urlInput.value.trim() };
+            state.turfs.push(newTurf);
+            if (saveState()) {
+                logAdminAction("Gang Territory Added", `Claimed control of **${name}** (Postal ${postal})`);
+                document.getElementById('turf-name-input').value = "";
+                document.getElementById('turf-postal-input').value = "";
+                document.getElementById('turf-img-url-input').value = "";
+                renderAdminPanel();
+                alert("Turf saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+            } else {
+                state.turfs.pop();
+            }
+        }
+
+        function deleteTurf(index) {
+            const target = state.turfs[index];
+            if(confirm("Confirm removing Turf?")) {
+                state.turfs.splice(index, 1);
+                if (saveState()) {
+                    logAdminAction("Gang Territory Released", `Released territorial claim for **${target.name}** (Postal ${target.postal})`);
+                    renderAdminPanel();
+                    alert("Turf deleted locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+                } else {
+                    state.turfs.splice(index, 0, target);
+                }
+            }
+        }
+
+        function saveAdminGallery(index) {
+            const urlInput = document.getElementById(`gallery-url-${index}`);
+            const val = urlInput.value.trim();
+            if (val) {
+                const oldImg = state.gallery[index];
+                state.gallery[index] = val;
+                if (saveState()) {
+                    logAdminAction("Archive Gallery Modified", `Uploaded fresh image snapshot for Gallery Slot ${index+1}`);
+                    renderAdminPanel();
+                    alert("Gallery image saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+                } else {
+                    state.gallery[index] = oldImg;
+                }
+            } else {
+                alert("Please paste a valid image URL first.");
+            }
+        }
+
+        function saveDiscordClientId() {
+            const val = document.getElementById('setup-discord-client-id').value;
+            const oldId = state.discordClientId;
+            state.discordClientId = val;
+            if (saveState()) {
+                logAdminAction("OAuth Client ID Configuration Modified", `OAuth authorization scope endpoint adjusted`);
+                alert("Discord Application Client configuration applied.");
+            } else {
+                state.discordClientId = oldId;
+            }
+        }
+
+        function saveCategoryConfiguration() {
+            const title = document.getElementById('setup-category-title').value;
+            if(!title) return;
+
+            const newCat = { id: 'cat-' + Date.now(), title };
+            state.categories.push(newCat);
+            if (saveState()) {
+                logAdminAction("Category Level Created", `Registered operational rank category **${title}**`);
+                renderAdminPanel();
+                document.getElementById('setup-category-title').value = "";
+                alert("Category saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+            } else {
+                state.categories.pop();
+            }
+        }
+
+        function deleteSetupCategory(id) {
+            if(confirm("Deleting this category will orphan its ranks. Ranks will move to the first category. Proceed?")) {
+                const targetIdx = state.categories.findIndex(c => c.id === id);
+                if (state.categories.length <= 1) {
+                    alert("Must retain at least one operational hierarchy category.");
+                    return;
+                }
+                const oldCategories = [...state.categories];
+                const oldRanks = JSON.parse(JSON.stringify(state.ranks));
+
+                const fallbackCatId = state.categories.find(c => c.id !== id).id;
+                state.ranks.forEach(r => {
+                    if (r.categoryId === id) r.categoryId = fallbackCatId;
+                });
+                state.categories = state.categories.filter(c => c.id !== id);
+
+                if (saveState()) {
+                    logAdminAction("Category Level Deleted", `Removed category and migrated child ranks.`);
+                    renderAdminPanel();
+                    alert("Category deleted locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+                } else {
+                    state.categories = oldCategories;
+                    state.ranks = oldRanks;
+                }
+            }
+        }
+
+        function moveCategory(index, direction) {
+            const oldCategories = [...state.categories];
+            moveItemInArray(state.categories, index, direction);
+            if (saveState()) {
+                renderAdminPanel();
+            } else {
+                state.categories = oldCategories;
+            }
+        }
+
+        function moveRank(index, direction) {
+            const oldRanks = [...state.ranks];
+            moveItemInArray(state.ranks, index, direction);
+            if (saveState()) {
+                renderAdminPanel();
+            } else {
+                state.ranks = oldRanks;
+            }
+        }
+
+        function saveRanksConfiguration() {
+            const title = document.getElementById('setup-rank-title').value;
+            const capacity = parseInt(document.getElementById('setup-rank-capacity').value);
+            const categoryId = document.getElementById('setup-rank-category').value;
+
+            if(!title || isNaN(capacity) || capacity < 1 || !categoryId) {
+                alert("Verify Rank Details format and ensure a category is selected.");
+                return;
+            }
+
+            const newRank = { id: 'r-' + Date.now(), title, capacity, categoryId };
+            state.ranks.push(newRank);
+            if (saveState()) {
+                logAdminAction("Roster Rank Registered", `Registered **${title}** inside selected category with identifier pool of ${capacity} slots`);
+                renderAdminPanel();
+                document.getElementById('setup-rank-title').value = "";
+                document.getElementById('setup-rank-capacity').value = "";
+                alert("Rank saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+            } else {
+                state.ranks.pop();
+            }
+        }
+
+        function deleteSetupRank(id) {
+            const targetRank = state.ranks.find(r => r.id === id);
+            if(confirm("Confirm drop of rank?")) {
+                const oldRanks = [...state.ranks];
+                const oldMembers = [...state.members];
+
+                state.ranks = state.ranks.filter(r => r.id !== id);
+                state.members = state.members.filter(m => m.rankId !== id); 
+
+                if (saveState()) {
+                    logAdminAction("Roster Rank Deleted", `Permanently dropped **${targetRank?.title}** from system databases`);
+                    renderAdminPanel();
+                    alert("Rank deleted locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+                } else {
+                    state.ranks = oldRanks;
+                    state.members = oldMembers;
+                }
+            }
+        }
+
+        function addNewCertType() {
+            const name = document.getElementById('setup-cert-name').value;
+            if(!name) return;
+
+            if(!state.certs.includes(name)) {
+                state.certs.push(name);
+                if (saveState()) {
+                    logAdminAction("Operational Credential Created", `Registered operational specialty certificate **${name}**`);
+                    renderAdminPanel();
+                    document.getElementById('setup-cert-name').value = "";
+                    alert("Specialty certificate saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+                } else {
+                    state.certs.pop();
+                }
+            }
+        }
+
+        function deleteCertType(name) {
+            if(confirm("Delete this qualification category?")) {
+                const oldCerts = [...state.certs];
+                state.certs = state.certs.filter(c => c !== name);
+                if (saveState()) {
+                    logAdminAction("Operational Credential Discarded", `Dropped specialty certification category **${name}**`);
+                    renderAdminPanel();
+                    alert("Specialty certificate deleted locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+                } else {
+                    state.certs = oldCerts;
+                }
+            }
+        }
+
+        function saveGuidesPDFUrl() {
+            const outfitUrl = document.getElementById('admin-outfit-pdf-url').value.trim();
+            const vehicleUrl = document.getElementById('admin-vehicle-pdf-url').value.trim();
+
+            state.documents.outfitPdf = outfitUrl;
+            state.documents.vehiclePdf = vehicleUrl;
+
+            if (saveState()) {
+                logAdminAction("Policy PDF URLs Updated", `Adjusted fleet configurations and uniform links`);
+                alert("Guide Links saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+            }
+        }
+
+        /* 
+           ============= ACTIONS: SOP SECTIONS BUILDER =============
+        */
+        function renderSOPSectionsAdminList() {
+            const container = document.getElementById('setup-sop-sections-list');
+            if (!state.documents.sopSections || state.documents.sopSections.length === 0) {
+                container.innerHTML = `<span class="text-xs text-gray-500 italic">No SOP Sections registered. Add your first section above.</span>`;
+                return;
+            }
+
+            container.innerHTML = state.documents.sopSections.map((sec, i) => `
+                <div class="bg-black/45 p-3.5 rounded border border-purple-950 flex justify-between items-start gap-4">
+                    <div class="space-y-1 truncate">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] bg-purple-900 text-purple-200 px-1.5 py-0.5 rounded font-mono font-bold">${sec.num}</span>
+                            <span class="text-sm font-bold text-white">${sec.title}</span>
+                        </div>
+                        <p class="text-[11px] text-gray-400 truncate max-w-xl leading-normal">${sec.text}</p>
+                        ${sec.btnLabel ? `
+                            <div class="text-[10px] text-purple-400 font-semibold flex items-center gap-1.5 mt-1">
+                                <i class="fas fa-link"></i> Action Button: <span class="bg-purple-950/60 px-1.5 py-0.5 rounded text-[9px] text-purple-200">${sec.btnLabel} (${sec.btnUrl})</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="flex gap-2 shrink-0">
+                        <button onclick="moveSOPSection(${i}, -1)" class="text-gray-400 hover:text-white text-xs p-1" title="Move Up"><i class="fas fa-chevron-up"></i></button>
+                        <button onclick="moveSOPSection(${i}, 1)" class="text-gray-400 hover:text-white text-xs p-1" title="Move Down"><i class="fas fa-chevron-down"></i></button>
+                        <button onclick="editSOPSection('${sec.id}')" class="text-purple-400 hover:text-purple-300 text-xs p-1" title="Edit"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteSOPSection('${sec.id}')" class="text-red-400 hover:text-red-600 text-xs p-1" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveSOPSection() {
+            const secId = document.getElementById('sop-edit-section-id').value;
+            const num = document.getElementById('sop-section-num').value.trim();
+            const title = document.getElementById('sop-section-title').value.trim();
+            const text = document.getElementById('sop-section-text').value.trim();
+            const btnLabel = document.getElementById('sop-section-btnlabel').value.trim();
+            const btnUrl = document.getElementById('sop-section-btnurl').value.trim();
+
+            if (!num || !title || !text) {
+                alert("Provide Section Code, Title, and text content.");
+                return;
+            }
+
+            const record = {
+                id: secId || 'sec-' + Date.now(),
+                num,
+                title,
+                text,
+                btnLabel,
+                btnUrl
+            };
+
+            const oldSections = [...state.documents.sopSections];
+            if (secId) {
+                const targetIdx = state.documents.sopSections.findIndex(s => s.id === secId);
+                state.documents.sopSections[targetIdx] = record;
+            } else {
+                state.documents.sopSections.push(record);
+            }
+
+            if (saveState()) {
+                logAdminAction(secId ? "SOP Section Updated" : "SOP Section Created", `Saved SOP Section **${num} - ${title}**`);
+                resetSOPSectionForm();
+                renderAdminPanel();
+                alert("SOP section saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+            } else {
+                state.documents.sopSections = oldSections;
+            }
+        }
+
+        function editSOPSection(id) {
+            const sec = state.documents.sopSections.find(s => s.id === id);
+            if (!sec) return;
+
+            document.getElementById('sop-form-title').textContent = "Update SOP Section";
+            document.getElementById('sop-edit-section-id').value = sec.id;
+            document.getElementById('sop-section-num').value = sec.num;
+            document.getElementById('sop-section-title').value = sec.title;
+            document.getElementById('sop-section-text').value = sec.text;
+            document.getElementById('sop-section-btnlabel').value = sec.btnLabel || "";
+            document.getElementById('sop-section-btnurl').value = sec.btnUrl || "";
+
+            document.getElementById('btn-cancel-sop-edit').classList.remove('hidden');
+        }
+
+        function resetSOPSectionForm() {
+            document.getElementById('sop-form-title').textContent = "Create / Edit SOP Section";
+            document.getElementById('sop-edit-section-id').value = "";
+            document.getElementById('sop-section-num').value = "";
+            document.getElementById('sop-section-title').value = "";
+            document.getElementById('sop-section-text').value = "";
+            document.getElementById('sop-section-btnlabel').value = "";
+            document.getElementById('sop-section-btnurl').value = "";
+
+            document.getElementById('btn-cancel-sop-edit').classList.add('hidden');
+        }
+
+        // Safe elements retrieval to protect setup script from reference crashes
+        function updateDatabaseCodeField() {
+            const textarea = document.getElementById('database-json-textarea');
+            if (textarea) {
+                textarea.value = JSON.stringify(state, null, 2);
+            }
+        }
+
+        function copyDatabaseCodeToClipboard() {
+            const textarea = document.getElementById('database-json-textarea');
+            if (textarea) {
+                textarea.select();
+                textarea.setSelectionRange(0, 99999); // For mobile devices
+                navigator.clipboard.writeText(textarea.value)
+                    .then(() => alert("✅ Database Code copied to clipboard!\n\nOpen your GitHub repository, edit 'database.json', paste this code, and commit changes."))
+                    .catch(err => alert("Failed to copy code: " + err));
+            }
+        }
+
+        function deleteSOPSection(id) {
+            const sec = state.documents.sopSections.find(s => s.id === id);
+            if (confirm("Confirm deleting this SOP Section?")) {
+                const oldSections = [...state.documents.sopSections];
+                state.documents.sopSections = state.documents.sopSections.filter(s => s.id !== id);
+                if (saveState()) {
+                    logAdminAction("SOP Section Deleted", `Removed Section **${sec?.num} - ${sec?.title}**`);
+                    renderAdminPanel();
+                    alert("SOP section deleted locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+                } else {
+                    state.documents.sopSections = oldSections;
+                }
+            }
+        }
+
+        function moveSOPSection(index, direction) {
+            const oldSections = [...state.documents.sopSections];
+            moveItemInArray(state.documents.sopSections, index, direction);
+            if (saveState()) {
+                renderAdminPanel();
+            } else {
+                state.documents.sopSections = oldSections;
+            }
+        }
+
+        /* 
+           ============= ROSTER SYSTEM INTERFACES =============
+        */
+        function renderRosterPanel() {
+            const rankSelect = document.getElementById('roster-member-rank');
+            rankSelect.innerHTML = state.ranks.map(r => `<option value="${r.id}">${r.title}</option>`).join('');
+            
+            updateDynamicIdentifierLimits();
+
+            // Cert Checklist
+            const certChecksContainer = document.getElementById('roster-certs-checks');
+            certChecksContainer.innerHTML = state.certs.map(c => `
+                <label class="flex items-center gap-2 text-gray-300">
+                    <input type="checkbox" name="roster-cert-item" value="${c}" class="rounded border-purple-900 bg-black text-syndicate-500">
+                    <span>${c}</span>
+                </label>
+            `).join('');
+
+            // Administration Lists organized by custom Category block order
+            const manageList = document.getElementById('roster-manage-list');
+            if(state.members.length === 0) {
+                manageList.innerHTML = `<div class="bg-black/20 p-8 rounded text-center text-xs text-gray-500 italic">Personnel Database is empty. Setup ranks and assign members.</div>`;
+                return;
+            }
+
+            manageList.innerHTML = state.categories.map(cat => {
+                const categoryRanks = state.ranks.filter(r => r.categoryId === cat.id);
+                if (categoryRanks.length === 0) return "";
+
+                return `
+                    <div class="bg-black/45 p-4 rounded-lg border border-purple-900/20 mb-6">
+                        <h4 class="text-xs text-syndicate-500 uppercase tracking-widest font-black mb-3 border-b border-purple-950/40 pb-1.5"><i class="fas fa-layer-group mr-1.5"></i>${cat.title}</h4>
+                        <div class="space-y-4">
+                            ${categoryRanks.map(rank => {
+                                const globalRankIdx = state.ranks.findIndex(r => r.id === rank.id);
+                                const rankMembers = state.members.filter(m => m.rankId === rank.id);
+                                const range = getRankRanges(globalRankIdx);
+
+                                return `
+                                    <div class="bg-black/20 p-3 rounded border border-purple-950/40">
+                                        <div class="flex justify-between items-center mb-2 pb-1 border-b border-purple-950/10">
+                                            <span class="font-bold text-white text-[11px] uppercase">${rank.title}</span>
+                                            <span class="text-[9px] text-gray-500 tracking-wider">Allocated Range: ${formatIdentifier(range.start)} - ${formatIdentifier(range.end)}</span>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            ${rankMembers.length === 0 ? `<span class="text-[10px] italic text-gray-600 block pl-2">No personnel.</span>` : rankMembers.map(m => {
+                                                return `
+                                                    <div class="bg-black/60 p-2.5 rounded border border-purple-950/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                                        <div>
+                                                            <div class="flex items-center gap-1.5">
+                                                                <span class="text-[9px] bg-purple-900 text-purple-200 px-1 py-0.2 rounded font-mono font-bold">${formatIdentifier(m.identifier)}</span>
+                                                                <span class="text-xs text-white font-bold">${m.name}</span>
+                                                                <span class="text-[9px] bg-emerald-950 text-emerald-400 px-1 rounded uppercase font-bold">${m.status}</span>
+                                                                ${m.strikes > 0 ? `<span class="text-[9px] bg-red-950 text-red-400 px-1 rounded font-bold">Strikes: ${m.strikes}</span>` : ''}
+                                                                ${m.warnings > 0 ? `<span class="text-[9px] bg-amber-950 text-amber-400 px-1 rounded font-bold">Warnings: ${m.warnings}</span>` : ''}
+                                                                ${m.blacklist ? `<span class="text-[9px] bg-red-600 text-white px-1 rounded font-bold">BLACKLIST</span>` : ''}
+                                                            </div>
+                                                            <span class="block text-[10px] text-gray-500 mt-0.5">Discord: ${m.discordId || 'N/A'} (ID: ${m.numericId || 'N/A'})</span>
+                                                        </div>
+                                                        <div class="flex gap-1.5">
+                                                            <button onclick="editRosterMember('${m.id}')" class="bg-purple-950 hover:bg-syndicate-500 px-2.5 py-1 text-[9px] uppercase font-bold rounded text-white transition-all"><i class="fas fa-edit"></i></button>
+                                                            <button onclick="deleteRosterMember('${m.id}')" class="bg-red-950/40 hover:bg-red-700 px-2.5 py-1 text-[9px] uppercase font-bold rounded text-red-200 transition-all"><i class="fas fa-trash"></i></button>
+                                                        </div>
+                                                    </div>
+                                                `;
+                                            }).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* 
+           ============= ACTIONS: ROSTER DATABASE MANAGEMENT =============
+        */
+        function saveRosterMember() {
+            const memberId = document.getElementById('roster-edit-member-id').value;
+            const rankId = document.getElementById('roster-member-rank').value;
+            const identifier = parseInt(document.getElementById('roster-member-identifier').value);
+            const name = document.getElementById('roster-member-name').value;
+            const discordId = document.getElementById('roster-member-discord').value;
+            const numericId = document.getElementById('roster-member-numeric-id').value;
+            const joinDate = document.getElementById('roster-member-joindate').value;
+            const promoDate = document.getElementById('roster-member-promodate').value;
+            const status = document.getElementById('roster-member-status').value;
+
+            const warning = parseInt(document.getElementById('roster-punish-warning').value);
+            const strikeVal = document.getElementById('roster-punish-strike').value;
+            const notes = document.getElementById('roster-punish-notes').value;
+
+            if(!name || isNaN(identifier)) {
+                alert("Ensure Active Name & Active Identifier are completed.");
+                return;
+            }
+
+            const rankIndex = state.ranks.findIndex(r => r.id === rankId);
+            const targetRank = state.ranks[rankIndex];
+            const range = getRankRanges(rankIndex);
+            if(identifier < range.start || identifier > range.end) {
+                alert(`Identifier [${formatIdentifier(identifier)}] falls outside range limits allocated for this rank position (${formatIdentifier(range.start)} - ${formatIdentifier(range.end)})`);
+                return;
+            }
+
+            const matchingMember = state.members.find(m => m.identifier === identifier && m.id !== memberId);
+            if(matchingMember) {
+                alert(`Identifier ${formatIdentifier(identifier)} is already actively occupied by ${matchingMember.name}. Use another identifier slot.`);
+                return;
+            }
+
+            const checkedCerts = [];
+            document.querySelectorAll('input[name="roster-cert-item"]:checked').forEach(el => {
+                checkedCerts.push(el.value);
+            });
+
+            const isBlacklisted = (strikeVal === "Blacklisted");
+            const strikeNumber = isBlacklisted ? 2 : parseInt(strikeVal);
+
+            const record = {
+                id: memberId || 'm-' + Date.now(),
+                rankId,
+                identifier,
+                name,
+                discordId,
+                numericId,
+                joinDate,
+                promoDate,
+                status,
+                certs: checkedCerts,
+                warnings: warning,
+                strikes: strikeNumber,
+                blacklist: isBlacklisted,
+                notes
+            };
+
+            const isNew = !memberId;
+            let rosterActionStr = isNew ? "Added to active roster" : "Roster file updated";
+
+            if(!isNew) {
+                const oldRecord = state.members.find(m => m.id === memberId);
+                if(oldRecord && oldRecord.rankId !== rankId) {
+                    rosterActionStr = "Promoted / Transferred Rank";
+                }
+            }
+
+            const oldMembers = [...state.members];
+            if(memberId) {
+                const targetIdx = state.members.findIndex(m => m.id === memberId);
+                state.members[targetIdx] = record;
+            } else {
+                state.members.push(record);
+            }
+
+            if (saveState()) {
+                logRosterMovement(
+                    name, 
+                    rosterActionStr, 
+                    targetRank?.title, 
+                    identifier, 
+                    numericId, 
+                    notes
+                );
+                resetRosterForm();
+                renderRosterPanel();
+                alert("Personnel saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+            } else {
+                state.members = oldMembers;
+            }
+        }
+
+        function editRosterMember(id) {
+            const member = state.members.find(m => m.id === id);
+            if(!member) return;
+
+            document.getElementById('roster-form-title').textContent = "Update Personnel File";
+            document.getElementById('roster-edit-member-id').value = member.id;
+            document.getElementById('roster-member-rank').value = member.rankId;
+            document.getElementById('roster-member-identifier').value = member.identifier;
+            document.getElementById('roster-member-name').value = member.name;
+            document.getElementById('roster-member-discord').value = member.discordId;
+            document.getElementById('roster-member-numeric-id').value = member.numericId || "";
+            document.getElementById('roster-member-joindate').value = member.joinDate;
+            document.getElementById('roster-member-promodate').value = member.promoDate;
+            document.getElementById('roster-member-status').value = member.status;
+
+            document.getElementById('roster-punish-warning').value = member.warnings || 0;
+            if(member.blacklist) {
+                document.getElementById('roster-punish-strike').value = "Blacklisted";
+            } else {
+                document.getElementById('roster-punish-strike').value = member.strikes || 0;
+            }
+            document.getElementById('roster-punish-notes').value = member.notes || "";
+
+            document.querySelectorAll('input[name="roster-cert-item"]').forEach(el => {
+                el.checked = member.certs ? member.certs.includes(el.value) : false;
+            });
+
+            document.getElementById('btn-cancel-roster-edit').classList.remove('hidden');
+            updateDynamicIdentifierLimits();
+        }
+
+        function resetRosterForm() {
+            document.getElementById('roster-form-title').textContent = "Assign Personnel to Roster";
+            document.getElementById('roster-edit-member-id').value = "";
+            document.getElementById('roster-member-identifier').value = "";
+            document.getElementById('roster-member-name').value = "";
+            document.getElementById('roster-member-discord').value = "";
+            document.getElementById('roster-member-numeric-id').value = "";
+            document.getElementById('roster-member-joindate').value = "";
+            document.getElementById('roster-member-promodate').value = "";
+            document.getElementById('roster-member-status').value = "Active";
+
+            document.getElementById('roster-punish-warning').value = "0";
+            document.getElementById('roster-punish-strike').value = "0";
+            document.getElementById('roster-punish-notes').value = "";
+
+            document.querySelectorAll('input[name="roster-cert-item"]').forEach(el => el.checked = false);
+            document.getElementById('btn-cancel-roster-edit').classList.add('hidden');
+        }
+
+        function deleteRosterMember(id) {
+            const target = state.members.find(m => m.id === id);
+            const targetRank = state.ranks.find(r => r.id === target?.rankId);
+            if(confirm("Confirm removal of member?")) {
+                const oldMembers = [...state.members];
+                state.members = state.members.filter(m => m.id !== id);
+                if (saveState()) {
+                    logRosterMovement(
+                        target?.name || "Unknown", 
+                        "Terminated / Removed from Gang Roster", 
+                        targetRank?.title || "N/A", 
+                        target?.identifier || 0, 
+                        target?.numericId || ""
+                    );
+                    renderRosterPanel();
+                    alert("Personnel deleted locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
+                } else {
+                    state.members = oldMembers;
+                }
+            }
+        }
+
+        /* 
+           ============= PUBLIC WEBSITE VISUALIZATION: ROSTER GRID =============
+        */
+        function openRosterViewer() {
+            window.location.hash = "roster";
+            document.getElementById('roster-viewer-modal').classList.remove('hidden');
+            renderPublicRoster();
+        }
+        function closeRosterViewer() {
+            window.location.hash = "";
+            document.getElementById('roster-viewer-modal').classList.add('hidden');
+        }
+
+        function renderPublicRoster() {
+            const root = document.getElementById('public-roster-grid');
+            
+            root.innerHTML = state.categories.map(cat => {
+                const categoryRanks = state.ranks.filter(r => r.categoryId === cat.id);
+                if (categoryRanks.length === 0) return "";
+
+                return `
+                    <div class="bg-black/35 rounded-lg border border-purple-900/25 overflow-hidden mb-8">
+                        <div class="bg-purple-950/60 px-4 py-3 border-b border-purple-900/30">
+                            <span class="serif-font font-black tracking-widest text-sm text-white uppercase"><i class="fas fa-layer-group text-purple-400 mr-2"></i>${cat.title}</span>
+                        </div>
+                        <div class="p-4 space-y-6">
+                            ${categoryRanks.map(rank => {
+                                const globalRankIdx = state.ranks.findIndex(r => r.id === rank.id);
+                                const rankMembers = state.members.filter(m => m.rankId === rank.id);
+                                return `
+                                    <div class="border-t border-purple-900/10 pt-4 first:border-0 first:pt-0">
+                                        <div class="flex justify-between items-center mb-3">
+                                            <span class="serif-font font-bold text-xs uppercase text-purple-300">${rank.title}</span>
+                                            <span class="text-[10px] text-gray-500">Allocated Pool: ${rank.capacity} Slots</span>
+                                        </div>
+                                        <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                            ${rankMembers.length === 0 ? `
+                                                <div class="col-span-full py-2 text-xs text-gray-600 italic">No Active Personnel Registered.</div>
+                                            ` : rankMembers.map(m => `
+                                                <div onclick="openMemberDetails('${m.id}')" class="bg-black/50 p-3 rounded border border-purple-950/50 hover:border-syndicate-500 cursor-pointer transition duration-300 flex items-center justify-between">
+                                                    <div>
+                                                        <div class="flex items-center gap-1.5 mb-1">
+                                                            <span class="text-[9px] bg-purple-900 text-purple-200 px-1 py-0.5 rounded font-mono font-bold">${formatIdentifier(m.identifier)}</span>
+                                                            <span class="text-xs font-bold text-white">${m.name}</span>
+                                                        </div>
+                                                        <span class="text-[10px] text-gray-500 tracking-wider">Duty State: <span class="text-syndicate-500 font-bold">${m.status}</span></span>
+                                                    </div>
+                                                    <div class="flex gap-1">
+                                                        ${m.blacklist ? `<span class="w-2 h-2 rounded-full bg-red-600" title="System Blacklisted"></span>` : ''}
+                                                        ${m.strikes > 0 && !m.blacklist ? `<span class="w-2 h-2 rounded-full bg-orange-600" title="Active Disciplinary Strikes"></span>` : ''}
+                                                        ${m.warnings > 0 ? `<span class="w-2 h-2 rounded-full bg-amber-500" title="Active Verbal Warnings"></span>` : ''}
+                                                        <i class="fas fa-chevron-right text-[10px] text-gray-600 pl-2"></i>
+                                                    </div>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* 
+           ============= PUBLIC WEBSITE VISUALIZATION: SINGLE MEMBER DOSSIER DETAILS =============
+        */
+        function openMemberDetails(id) {
+            const member = state.members.find(m => m.id === id);
+            if(!member) return;
+
+            const modal = document.getElementById('member-detail-modal');
+            const box = document.getElementById('member-detail-content');
+
+            box.innerHTML = `
+                <div class="text-center mb-6 border-b border-purple-900/30 pb-4">
+                    <span class="text-[10px] bg-purple-900 text-purple-200 px-2 py-0.5 rounded font-mono font-bold tracking-widest uppercase">ID: ${formatIdentifier(member.identifier)}</span>
+                    <h3 class="serif-font font-black text-white text-xl mt-2 tracking-widest">${member.name}</h3>
+                    <span class="text-xs text-syndicate-500 tracking-wider block font-semibold mt-1">Status: ${member.status}</span>
+                </div>
+
+                <div class="space-y-4 text-xs">
+                    <div class="grid grid-cols-2 gap-4 border-b border-purple-900/15 pb-3">
+                        <div>
+                            <span class="text-gray-500 block mb-0.5">Discord Handler</span>
+                            <span class="text-white font-bold block">${member.discordId || 'Unavailable'}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block mb-0.5">Assigned Rank</span>
+                            <span class="text-white font-bold block">${state.ranks.find(r => r.id === member.rankId)?.title || 'Unassigned'}</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 border-b border-purple-900/15 pb-3">
+                        <div>
+                            <span class="text-gray-500 block mb-0.5">Registry Join Date</span>
+                            <span class="text-white font-bold block">${member.joinDate || 'Unavailable'}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block mb-0.5">Last Promotion</span>
+                            <span class="text-white font-bold block">${member.promoDate || 'Unavailable'}</span>
+                        </div>
+                    </div>
+
+                    <!-- Certifications Block -->
+                    <div>
+                        <span class="text-gray-500 block mb-2 font-bold uppercase tracking-wide text-[10px]">Operations Certifications</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            ${!member.certs || member.certs.length === 0 ? `
+                                <span class="italic text-gray-500 text-[11px]">No certifications registered.</span>
+                            ` : member.certs.map(c => `
+                                <span class="bg-purple-950/60 border border-purple-900/40 text-[10px] text-purple-300 font-bold px-2 py-1 rounded flex items-center gap-1">
+                                    <i class="fas fa-certificate text-purple-500"></i> ${c}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Conduct Records Info Box -->
+                    <div class="bg-black/40 p-3 rounded border border-purple-950/60 mt-4">
+                        <span class="text-[10px] text-gray-400 font-bold uppercase block mb-1">Disciplinary Records Dossier</span>
+                        <div class="flex gap-4 text-[11px] font-bold">
+                            <span class="${member.warnings > 0 ? 'text-amber-500' : 'text-gray-500'}">Warnings: ${member.warnings || 0}/2</span>
+                            <span class="${member.strikes > 0 ? 'text-red-500' : 'text-gray-500'}">Strikes: ${member.strikes || 0}/2</span>
+                            <span class="${member.blacklist ? 'text-red-600 underline uppercase' : 'text-gray-500'}">Blacklist: ${member.blacklist ? 'YES' : 'NO'}</span>
+                        </div>
+                        ${member.notes ? `<p class="mt-2 text-gray-300 italic text-[11px] leading-relaxed border-t border-purple-900/20 pt-2">"${member.notes}"</p>` : ''}
+                    </div>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeMemberDetails() {
+            document.getElementById('member-detail-modal').classList.remove('flex');
+            document.getElementById('member-detail-modal').classList.add('hidden');
+        }
+
+        /* 
+           ============= INTERNAL STYLIZED CREAM SOP DOCUMENTS VIEWER =============
+        */
+        function openDocumentsViewer(defaultChapter = 'rules') {
+            window.location.hash = defaultChapter;
+            document.getElementById('documents-viewer-modal').classList.remove('hidden');
+            switchSOPChapter(defaultChapter);
+        }
+
+        function closeDocumentsViewer() {
+            window.location.hash = "";
+            document.getElementById('documents-viewer-modal').classList.add('hidden');
+        }
+
+        function copyDeepLink(hash) {
+            const domain = window.location.href.split('#')[0];
+            const fullLink = `${domain}#${hash}`;
+            navigator.clipboard.writeText(fullLink)
+                .then(() => alert(`Direct access URL copied to clipboard: ${fullLink}`))
+                .catch(err => console.error("Could not copy link:", err));
+        }
+
+        function switchSOPChapter(chapId) {
+            window.location.hash = chapId;
+            document.querySelectorAll('#documents-viewer-modal ul block').forEach(btn => {
+                btn.classList.remove('text-purple-900', 'font-bold');
+            });
+            const targetBtn = document.getElementById('btn-chapter-' + chapId);
+            if (targetBtn) targetBtn.classList.add('text-purple-900', 'font-bold');
+
+            const contentBlock = document.getElementById('sop-chapter-content');
+
+            if(chapId === "rules") {
+                const sectionsList = state.documents.sopSections.map(sec => `
+                    <div class="mb-6 pb-4 border-b border-purple-950/10">
+                        <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">${sec.num} ${sec.title}</h4>
+                        <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2 whitespace-pre-line">${sec.text}</p>
+                        ${sec.btnLabel && sec.btnUrl ? `
+                            <a href="${sec.btnUrl}" target="_blank" class="inline-flex items-center gap-1.5 mt-3 bg-purple-950 hover:bg-syndicate-500 text-white font-bold text-[10px] px-3 py-1.5 rounded transition-all uppercase">
+                                <i class="fas fa-external-link-alt text-[9px]"></i> ${sec.btnLabel}
+                            </a>
+                        ` : ''}
+                    </div>
+                `).join('');
+
+                contentBlock.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
+                            <div class="text-center md:text-left">
+                                <span class="sop-serif font-black text-2xl tracking-widest block">STANDARD OPERATING PROCEDURE</span>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">Los Santos Mafia Dossier</span>
+                            </div>
+                            <button onclick="copyDeepLink('rules')" class="bg-purple-950/10 hover:bg-purple-950/20 text-purple-950 text-[10px] px-2.5 py-1 rounded font-bold uppercase transition-all"><i class="fas fa-link mr-1"></i> Copy Share Link</button>
+                        </div>
+                        <div class="text-xs text-purple-950 font-semibold leading-relaxed font-sans max-h-[400px] overflow-y-auto pr-2">
+                            ${sectionsList}
+                        </div>
+                    </div>
+                    <div class="border-t border-purple-950/10 pt-4 mt-6 flex justify-between items-center text-[10px] font-bold text-purple-950 opacity-50">
+                        <span>CLASSIFIED TSF MAFIA OPERATIVE BRIEF</span>
+                        <span>01 / PAGE 01</span>
+                    </div>
+                `;
+            } else if(chapId === "outfits") {
+                contentBlock.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
+                            <div class="text-center md:text-left">
+                                <span class="sop-serif font-black text-2xl tracking-widest block">2.1 UNIFORM CODES & GUIDES</span>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">TSF Aesthetic Directives</span>
+                            </div>
+                            <button onclick="copyDeepLink('outfits')" class="bg-purple-950/10 hover:bg-purple-950/20 text-purple-950 text-[10px] px-2.5 py-1 rounded font-bold uppercase transition-all"><i class="fas fa-link mr-1"></i> Copy Share Link</button>
+                        </div>
+                        <p class="text-xs text-purple-950 font-semibold leading-relaxed mb-4">Official uniform specifications and dress regulations for Syndicate Operations are embedded in the dossier below.</p>
+                        <div id="pdf-container-outfits" class="h-[380px] bg-purple-950/5 border-2 border-purple-900/10 rounded flex flex-col justify-center items-center">
+                            <span class="text-xs text-purple-950 font-bold"><i class="fas fa-spinner fa-spin mr-2"></i>Loading Outfit Brochure...</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-purple-950/10 pt-4 mt-6 flex justify-between items-center text-[10px] font-bold text-purple-950 opacity-50">
+                        <span>CONFIDENTIAL OPERATIONS REGULATION</span>
+                        <span>01 / PAGE 02</span>
+                    </div>
+                `;
+                setTimeout(() => loadInteractivePDFPreview('outfits', state.documents.outfitPdf), 100);
+            } else if(chapId === "vehicles") {
+                contentBlock.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
+                            <div class="text-center md:text-left">
+                                <span class="sop-serif font-black text-2xl tracking-widest block">2.2 FLEET & VEHICLE POLICIES</span>
+                                <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">TSF Motorized Assets</span>
+                            </div>
+                            <button onclick="copyDeepLink('vehicles')" class="bg-purple-950/10 hover:bg-purple-950/20 text-purple-950 text-[10px] px-2.5 py-1 rounded font-bold uppercase transition-all"><i class="fas fa-link mr-1"></i> Copy Share Link</button>
+                        </div>
+                        <p class="text-xs text-purple-950 font-semibold leading-relaxed mb-4">Sanctioned color hues, tiers, speed constraints, and active vehicle classes are embedded below:</p>
+                        <div id="pdf-container-vehicles" class="h-[380px] bg-purple-950/5 border-2 border-purple-900/10 rounded flex flex-col justify-center items-center">
+                            <span class="text-xs text-purple-950 font-bold"><i class="fas fa-spinner fa-spin mr-2"></i>Loading Fleet Configuration PDF...</span>
+                        </div>
+                    </div>
+                    <div class="border-t border-purple-950/10 pt-4 mt-6 flex justify-between items-center text-[10px] font-bold text-purple-950 opacity-50">
+                        <span>CONFIDENTIAL VEHICLE GUIDES</span>
+                        <span>01 / PAGE 03</span>
+                    </div>
+                `;
+                setTimeout(() => loadInteractivePDFPreview('vehicles', state.documents.vehiclePdf), 100);
+            }
+        }
+
+        /*
+           ============= PDF RENDERING CONTROLLER (BLOB INJECTION) =============
+        */
+        function loadInteractivePDFPreview(type, base64Data) {
+            const container = document.getElementById(`pdf-container-${type}`);
+            if (!base64Data) {
+                container.innerHTML = `
+                    <div class="p-8 text-center">
+                        <i class="fas fa-user-slash text-2xl text-purple-950 opacity-40 mb-3"></i>
+                        <span class="font-bold text-xs text-purple-950 opacity-60 block">No PDF document loaded for this standard policy guide yet. Load it in Admin Portal.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                // If it is a web URL, render inside standard iframe
+                if (base64Data.startsWith("http")) {
+                    container.innerHTML = `
+                        <iframe src="${base64Data}" class="w-full h-full border-0 rounded bg-white"></iframe>
+                        <div class="w-full bg-purple-950/10 p-2 flex justify-between items-center rounded-b border-t border-purple-900/15">
+                            <span class="text-[10px] font-bold text-purple-950 uppercase opacity-70">Interactive Policy Reader Active</span>
+                            <a href="${base64Data}" target="_blank" class="bg-purple-950 hover:bg-syndicate-500 text-white font-bold text-[10px] px-3 py-1.5 rounded transition-all uppercase flex items-center gap-1">
+                                <i class="fas fa-external-link-alt"></i> Open Manual PDF
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const blobUrl = dataURLtoBlobURL(base64Data);
+                if (!blobUrl) throw new Error("Could not construct local Blob Object URL reference");
+                
+                container.innerHTML = `
+                    <iframe src="${blobUrl}" class="w-full h-full border-0 rounded bg-white"></iframe>
+                    <div class="w-full bg-purple-950/10 p-2 flex justify-between items-center rounded-b border-t border-purple-900/15">
+                        <span class="text-[10px] font-bold text-purple-950 uppercase opacity-70">Interactive Policy Reader Active</span>
+                        <a href="${blobUrl}" download="TSF-${type}-guide.pdf" class="bg-purple-950 hover:bg-syndicate-500 text-white font-bold text-[10px] px-3 py-1.5 rounded transition-all uppercase flex items-center gap-1">
+                            <i class="fas fa-file-download"></i> Download Manual PDF
+                        </a>
+                    </div>
+                `;
+            } catch (err) {
+                console.error("Critical Frame Binding failure:", err);
+                container.innerHTML = `
+                    <div class="p-8 text-center">
+                        <i class="fas fa-exclamation-triangle text-2xl text-red-700 mb-3 block"></i>
+                        <span class="font-bold text-xs text-red-900 block mb-4">Browser sandbox policies blocked preview rendering. Download manually below:</span>
+                        <a href="${base64Data}" download="TSF-${type}-guide.pdf" class="bg-purple-950 hover:bg-syndicate-500 text-white font-bold text-xs px-5 py-2 rounded transition-all uppercase">
+                            <i class="fas fa-file-download mr-1"></i> Download Guidebook PDF
+                        </a>
+                    </div>
+                `;
+            }
+        }
+
+        /*
+           ============= DIRECT URL HASH ROUTING CONTROLLER =============
+        */
+        function evaluateHashParamsOnLoad() {
+            const h = window.location.hash.substring(1);
+            if (!h) return;
+            if (h === "rules" || h === "outfits" || h === "vehicles") {
+                openDocumentsViewer(h);
+            } else if (h === "roster") {
+                openRosterViewer();
+            }
+        }
+
+        // Run on Initial Window Load
+        window.onload = async function() {
+            checkDiscordOAuthHash();
+            loadStateFromCloud();
+            evaluateHashParamsOnLoad();
+        };
+    </script>
+</body>
+</html>
