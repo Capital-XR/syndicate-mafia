@@ -909,11 +909,11 @@
                 vehiclePdf: ""
             },
             discordClientId: "",
-            // Cloud Synchronization Properties
-            cloudSyncUrl: "",
+            // Hardcode your cloud database properties directly in the website code
+            cloudSyncUrl: "https://kvdb.io/Db9q9z4t3H3GaZa63bAdkt/tsf_state",
             cloudSyncHeaderKey: "",
             cloudSyncHeaderVal: "",
-            cloudSyncEnabled: false
+            cloudSyncEnabled: true
         };
 
         let state = JSON.parse(localStorage.getItem('tsf_state')) || DEFAULT_STATE;
@@ -926,11 +926,9 @@
         if(!state.documents) state.documents = DEFAULT_STATE.documents;
         if(state.discordClientId === undefined) state.discordClientId = "";
         
-        // Ensure Cloud settings are initialised
-        if(state.cloudSyncUrl === undefined) state.cloudSyncUrl = "";
-        if(state.cloudSyncHeaderKey === undefined) state.cloudSyncHeaderKey = "";
-        if(state.cloudSyncHeaderVal === undefined) state.cloudSyncHeaderVal = "";
-        if(state.cloudSyncEnabled === undefined) state.cloudSyncEnabled = false;
+        // Force the connected Cloud Sync parameters to always be active on startup
+        state.cloudSyncUrl = "https://kvdb.io/Db9q9z4t3H3GaZa63bAdkt/tsf_state";
+        state.cloudSyncEnabled = true;
 
         // Backward compatibility parsing for old flat text files
         if (!state.documents.sopSections) {
