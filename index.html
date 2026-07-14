@@ -1,31 +1,3 @@
-The blank Admin Portal and the infinite "Syncing" status were caused by a
-JavaScript reference crash (TypeError):
-
-When we converted the cloud sync tab over to the GitHub database.json layout, we
-removed the old database input fields from the HTML. However, the background
-script was still trying to locate those old input boxes to fill them on load.
-Because those elements no longer existed, the browser encountered a critical
-crash halfway through the script, which froze the page rendering and left the
-status badge stuck on "Syncing...".
-
-What I have resolved:
-
-1.  Fixed the Script Crash: I have guarded all setup fields with safe null
-    checks so the website loads cleanly without any JavaScript errors.
-2.  Fully Converted Image Slots to URLs: I replaced all remaining file upload
-    buttons inside the Command grids, Inner Circle lists, turfs, and gallery
-    grids with clean text URL inputs so you can use Discord or Imgur links.
-3.  Guide URL Inputs: The SOP tab now features direct text fields for Outfit and
-    Vehicle presentation links.
-
-Complete Restored HTML Code
-
-Please copy this entire code block, paste it into your index.html on GitHub,
-commit the changes, and wait a few seconds.
-
-Once loaded, your site will bypass the crash, render all admin portal menus, and
-let you manage your static database file seamlessly:
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
