@@ -747,7 +747,7 @@
                                         <option value="Blacklisted">Blacklist</option>
                                     </select>
                                 </div>
-                                class="col-span-2">
+                                <div class="col-span-2">
                                     <label class="text-[10px] text-gray-400 block mb-1">Internal Log Notes</label>
                                     <textarea id="roster-punish-notes" rows="2" placeholder="Conduct remarks / incident files..." class="w-full bg-black border border-purple-900/20 rounded p-1.5 text-[11px] text-white"></textarea>
                                 </div>
@@ -1012,6 +1012,18 @@
                         headers[state.cloudSyncHeaderKey] = state.cloudSyncHeaderVal;
                     }
                     const response = await fetch(state.cloudSyncUrl, { method: "GET", headers });
+                    
+                    if (response.status === 404) {
+                        // Empty fresh database handling
+                        console.log("Cloud Database is currently empty.");
+                        renderWebsite(); // Render current local screen details
+                        if (statusIndicator) {
+                            statusIndicator.innerHTML = `<i class="fas fa-cloud text-purple-400"></i> Cloud Ready`;
+                            statusIndicator.className = "flex items-center gap-1.5 text-xs text-purple-400 font-semibold bg-purple-950/30 px-3 py-1 rounded border border-purple-900/30";
+                        }
+                        return; // Exit successfully
+                    }
+
                     if (response.ok) {
                         const cloudData = await response.json();
                         let parsedData = cloudData;
@@ -1414,7 +1426,6 @@
             return { start: 1, end: 100 };
         }
 
-        // Standard 2-digit format converter (e.g. 05, 11)
         function formatIdentifier(num) {
             return String(num).padStart(2, '0');
         }
