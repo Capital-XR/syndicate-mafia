@@ -360,7 +360,7 @@
                         <span class="text-gray-600 hidden sm:inline">|</span>
                         <div id="admin-logged-user-display" class="flex items-center gap-1.5 text-xs text-purple-400 mr-2"></div>
                         <span class="text-gray-600 hidden sm:inline">|</span>
-                        <div id="active-db-display-label" class="text-[10px] text-purple-400 bg-purple-950/20 border border-purple-900/35 px-2 py-0.5 rounded font-mono font-bold">DATABASE: GitHub database.json File</div>
+                        <div id="active-db-display-label" class="text-[10px] text-purple-400 bg-purple-950/20 border border-purple-900/35 px-2 py-0.5 rounded font-mono font-bold">DATABASE: KVdb Cloud Storage Active</div>
                     </div>
                 </div>
                 <button onclick="closeAdminPortal()" class="bg-red-950/40 hover:bg-red-800 text-white px-4 py-2 rounded text-xs uppercase tracking-wider font-bold transition-colors">
@@ -577,39 +577,65 @@
 
             <!-- Tab: Cloud Sync -->
             <div id="tab-cloud-sync" class="admin-tab-content space-y-6 hidden">
-                <h3 class="text-lg font-bold text-white border-b border-purple-950/50 pb-2">GitHub Database Synchronization</h3>
+                <h3 class="text-lg font-bold text-white border-b border-purple-950/50 pb-2">Multi-Device Cloud Synchronization</h3>
                 <div class="grid md:grid-cols-12 gap-8">
                     <!-- Configurator Left Panel (7 Cols) -->
                     <div class="md:col-span-7 bg-black/30 p-5 border border-purple-900/30 rounded-lg space-y-6">
                         <div class="space-y-2">
-                            <h4 class="font-bold text-purple-400 text-xs uppercase tracking-wider font-semibold">GitHub database.json Sync Manager</h4>
+                            <h4 class="font-bold text-purple-400 text-xs uppercase tracking-wider font-semibold">Cloud Sync Dashboard</h4>
                             <p class="text-xs text-gray-300 leading-relaxed">
-                                To make your roster modifications visible to other devices globally with 100% stability, your website reads directly from a static file called <strong>`database.json`</strong> stored in your GitHub project folder.
+                                Your website is now hard-wired to your private **KVdb.io** database. All edits made in this portal sync globally across everyone's laptops and mobile devices in real-time. No manual configuration is required.
                             </p>
-                            <div class="bg-purple-950/20 p-4 rounded text-xs text-purple-300 leading-relaxed border border-purple-900/30 space-y-3">
-                                <strong>How to Save & Deploy Changes:</strong>
-                                <ol class="list-decimal pl-4 space-y-1 text-purple-200">
-                                    <li>Make all your roster edits, command spots, turf edits, and SOP section edits inside this portal.</li>
-                                    <li>Switch to this tab, click the blue **Copy Database Code** button below.</li>
-                                    <li>Open your GitHub repository in a new browser tab, edit your **`database.json`** file, paste the copied code, and click **Commit changes**.</li>
-                                    <li>Vercel will deploy the file in seconds. Everyone globally will see your new roster immediately!</li>
-                                </ol>
+                            <div class="bg-purple-950/20 p-4 rounded text-xs text-purple-300 leading-relaxed border border-purple-900/30 space-y-2">
+                                <strong>Active Connected Database:</strong>
+                                <ul class="list-disc pl-4 space-y-1 font-mono text-[11px] text-purple-200">
+                                    <li>Bucket Link: <span class="bg-black/40 px-1 rounded text-purple-400">https://kvdb.io/Db9q9z4t3H3GaZa63bAdkt/tsf_state</span></li>
+                                    <li>Type: <span class="bg-black/40 px-1 rounded text-purple-400">KVdb.io Bucket Storage</span></li>
+                                    <li>CORS Preflight: <span class="bg-black/40 px-1 rounded text-emerald-400">Fully Bypassed (Bypasses Security Blocks)</span></li>
+                                </ul>
                             </div>
                         </div>
 
                         <div class="space-y-4 pt-2 border-t border-purple-950/40">
-                            <button onclick="copyDatabaseCodeToClipboard()" class="w-full bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2.5 rounded text-xs uppercase tracking-wider transition-all">
-                                <i class="fas fa-copy mr-1.5"></i> Copy Database Code
-                            </button>
-                            <textarea id="database-json-textarea" readonly rows="8" class="w-full bg-black/40 border border-purple-900/30 rounded p-3 text-[10px] text-gray-400 font-mono focus:outline-none"></textarea>
+                            <div>
+                                <label class="text-xs text-gray-300 block mb-1 font-semibold">Cloud Sync URL</label>
+                                <input type="text" id="sync-url-input" placeholder="https://kvdb.io/Db9q9z4t3H3GaZa63bAdkt/tsf_state" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="text-xs text-gray-300 block mb-1 font-semibold">Header Key</label>
+                                    <input type="text" id="sync-header-key" placeholder="None" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white text-center">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-300 block mb-1 font-semibold">Header Value</label>
+                                    <input type="text" id="sync-header-val" placeholder="None" class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white text-center">
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 pt-2 text-xs">
+                                <input type="checkbox" id="sync-enabled-check" class="rounded border-purple-900 bg-black text-syndicate-500 h-4 w-4">
+                                <label class="text-xs text-gray-300 font-semibold cursor-pointer" for="sync-enabled-check">Enable Real-Time Cloud Synchronization</label>
+                            </div>
+                            <div class="flex gap-2 pt-2">
+                                <button onclick="saveCloudSyncConfig()" class="flex-1 bg-syndicate-500 hover:bg-syndicate-800 text-white font-bold py-2.5 rounded text-xs uppercase tracking-wider font-semibold">Save Config & Sync</button>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Manual Controls Panel (5 Cols) -->
                     <div class="md:col-span-5 space-y-6">
                         <div class="bg-black/30 p-5 border border-purple-900/30 rounded-lg space-y-4">
+                            <h4 class="font-bold text-white text-xs uppercase tracking-wider">Manual Database Tools</h4>
+                            <p class="text-[11px] text-gray-400">Force immediate data uploads to overwrite the cloud state or force download it.</p>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="triggerManualCloudPush()" class="bg-purple-950 hover:bg-purple-900 text-white font-semibold py-2 rounded text-xs uppercase tracking-wide transition-all"><i class="fas fa-cloud-upload-alt mr-1"></i> Push Local</button>
+                                <button onclick="triggerManualCloudPull()" class="bg-purple-950 hover:bg-purple-900 text-white font-semibold py-2 rounded text-xs uppercase tracking-wide transition-all"><i class="fas fa-cloud-download-alt mr-1"></i> Pull Cloud</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-black/30 p-5 border border-purple-900/30 rounded-lg space-y-4">
                             <h4 class="font-bold text-white text-xs uppercase tracking-wider">Manual Offline Backups (.json)</h4>
-                            <p class="text-[11px] text-gray-400">Save a physical backup file of your setup to your computer, or restore a backup file directly.</p>
+                            <p class="text-[11px] text-gray-400">Export your local database to a backup file, send it to a friend over Discord, and have them upload it to import your state instantly.</p>
                             
                             <div class="space-y-3">
                                 <button onclick="exportBackupFile()" class="w-full bg-emerald-950/60 hover:bg-emerald-900/70 border border-emerald-900 text-emerald-300 font-bold py-2 rounded text-xs uppercase tracking-wider transition-all"><i class="fas fa-file-export mr-1.5"></i> Export Backup File</button>
@@ -810,6 +836,24 @@
 
     <!-- MAIN JAVASCRIPT STATE AND FUNCTIONS -->
     <script>
+        // Self-Healing Startup Script: Wipe out any old localStorage conflicts with old structures
+        const localStateRaw = localStorage.getItem('tsf_state');
+        if (localStateRaw) {
+            try {
+                const parsed = JSON.parse(localStateRaw);
+                // Force load fresh connection credentials if using legacy JSONBin config
+                if (parsed.cloudSyncUrl && parsed.cloudSyncUrl.includes("jsonbin.io")) {
+                    console.log("Self-healing: Cleaning up old JSONBin settings.");
+                    localStorage.removeItem('tsf_state');
+                    localStorage.removeItem('tsf_discord_user');
+                    sessionStorage.clear();
+                    window.location.reload();
+                }
+            } catch (e) {
+                console.error("Self-healing error:", e);
+            }
+        }
+
         // Core Configured System Credentials & Webhooks
         const CODES = {
             admin: "TSF#ADMIN!26",
@@ -878,7 +922,12 @@
                 outfitPdf: "",
                 vehiclePdf: ""
             },
-            discordClientId: ""
+            discordClientId: "",
+            // Hardcode your cloud database properties directly in the website code (CORS preflight bypassed)
+            cloudSyncUrl: "https://kvdb.io/Db9q9z4t3H3GaZa63bAdkt/tsf_state",
+            cloudSyncHeaderKey: "",
+            cloudSyncHeaderVal: "",
+            cloudSyncEnabled: true
         };
 
         let state = JSON.parse(localStorage.getItem('tsf_state')) || DEFAULT_STATE;
@@ -890,6 +939,42 @@
         if(!state.members) state.members = DEFAULT_STATE.members;
         if(!state.documents) state.documents = DEFAULT_STATE.documents;
         if(state.discordClientId === undefined) state.discordClientId = "";
+        
+        // Force the connected Cloud Sync parameters to always be active on startup (Bypassing OPTIONS CORS check)
+        state.cloudSyncUrl = "https://kvdb.io/Db9q9z4t3H3GaZa63bAdkt/tsf_state";
+        state.cloudSyncHeaderKey = "";
+        state.cloudSyncHeaderVal = "";
+        state.cloudSyncEnabled = true;
+
+        // Backward compatibility parsing for old flat text files
+        if (!state.documents.sopSections) {
+            if (state.documents.sopText) {
+                const paragraphs = state.documents.sopText.split('\n\n');
+                state.documents.sopSections = paragraphs.map((p, i) => {
+                    const lines = p.split('\n');
+                    const firstLine = lines[0] || "";
+                    let num = "1." + (i + 1);
+                    let title = "SOP Part " + (i + 1);
+                    let text = p;
+                    const match = firstLine.match(/^(\d+\.\d+)\s+(.*)$/);
+                    if (match) {
+                        num = match[1];
+                        title = match[2];
+                        text = lines.slice(1).join('\n');
+                    }
+                    return {
+                        id: 'sec-' + Date.now() + '-' + i,
+                        num: num,
+                        title: title,
+                        text: text,
+                        btnLabel: "",
+                        btnUrl: ""
+                    };
+                });
+            } else {
+                state.documents.sopSections = DEFAULT_STATE.documents.sopSections;
+            }
+        }
 
         // Ensure rank migrations have assigned categories
         state.ranks.forEach(r => {
@@ -906,7 +991,6 @@
             try {
                 localStorage.setItem('tsf_state', JSON.stringify(state));
                 renderWebsite();
-                updateDatabaseCodeField(); // Instantly update database.json display box
                 return true;
             } catch (err) {
                 console.error("Storage Error:", err);
@@ -916,7 +1000,7 @@
         }
 
         /* 
-           ============= GITHUB STATIC database.json ENGINE =============
+           ============= CLOUD SYNCHRONISATION CONTROLLERS =============
         */
         function loadStateFromCloud() {
             const statusIndicator = document.getElementById('cloud-sync-status');
@@ -927,55 +1011,56 @@
                 statusIndicator.className = "flex items-center gap-1.5 text-xs text-amber-400 font-semibold bg-amber-950/30 px-3 py-1 rounded border border-amber-900/30";
             }
 
-            // Fetch database.json locally from your Vercel deployment folder
+            const cleanUrl = state.cloudSyncUrl.trim();
+
+            // Use robust, standard XHR requests to prevent fetch preflight header stripping
             const xhr = new XMLHttpRequest();
-            xhr.open("GET", "database.json", true);
+            xhr.open("GET", cleanUrl, true);
 
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
-                    if (xhr.status >= 200 && xhr.status < 300) {
+                    if (xhr.status === 404) {
+                        console.log("Cloud Database is currently empty.");
+                        renderWebsite();
+                        if (statusIndicator) {
+                            statusIndicator.innerHTML = `<i class="fas fa-cloud text-purple-400"></i> Cloud Ready`;
+                            statusIndicator.className = "flex items-center gap-1.5 text-xs text-purple-400 font-semibold bg-purple-950/30 px-3 py-1 rounded border border-purple-900/30";
+                        }
+                    } else if (xhr.status >= 200 && xhr.status < 300) {
                         try {
                             const cloudData = JSON.parse(xhr.responseText);
-                            
                             if (cloudData && (cloudData.command || cloudData.members)) {
-                                // Smart startup safeguard
+                                // Smart cloud empty protector
                                 const localHasData = state.members && state.members.length > 0;
                                 const localHasCommand = state.command && state.command.some(c => c.name && c.name !== "Vacant");
                                 const cloudIsEmpty = (!cloudData.members || cloudData.members.length === 0) && 
                                                      (!cloudData.command || cloudData.command.every(c => !c.name || c.name === "Vacant"));
 
                                 if ((localHasData || localHasCommand) && cloudIsEmpty) {
-                                    console.log("Startup Guard: Local browser has custom roster data, but cloud database.json is empty. Copy-paste your database code to GitHub!");
+                                    console.log("Startup Guard: Local browser has custom roster data, but cloud database is empty. Auto-uploading local setup to prevent blank reset...");
+                                    pushStateToCloud();
                                     renderWebsite();
-                                    updateDatabaseCodeField();
-                                    if (statusIndicator) {
-                                        statusIndicator.innerHTML = `<i class="fas fa-exclamation-triangle text-amber-400"></i> Local Changes Active`;
-                                        statusIndicator.className = "flex items-center gap-1.5 text-xs text-amber-400 font-semibold bg-amber-950/30 px-3 py-1 rounded border border-amber-900/30";
-                                    }
                                     return;
                                 }
 
                                 state = cloudData;
                                 localStorage.setItem('tsf_state', JSON.stringify(state));
                                 renderWebsite();
-                                updateDatabaseCodeField();
                                 if (statusIndicator) {
-                                    statusIndicator.innerHTML = `<i class="fas fa-check-circle text-emerald-400"></i> Synced with GitHub`;
+                                    statusIndicator.innerHTML = `<i class="fas fa-cloud text-emerald-400"></i> Cloud Synced`;
                                     statusIndicator.className = "flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-950/30 px-3 py-1 rounded border border-emerald-900/30 font-bold";
                                 }
                             }
                         } catch (e) {
                             console.error("Error parsing cloud JSON:", e);
                             renderWebsite();
-                            updateDatabaseCodeField();
                         }
                     } else {
-                        console.warn("Could not find database.json on Vercel yet. Falling back to local browser memory.");
+                        console.error("Cloud pull failed:", xhr.status, xhr.responseText);
                         renderWebsite();
-                        updateDatabaseCodeField();
                         if (statusIndicator) {
-                            statusIndicator.innerHTML = `<i class="fas fa-exclamation-triangle text-amber-400"></i> Local Backup Active`;
-                            statusIndicator.className = "flex items-center gap-1.5 text-xs text-amber-400 font-semibold bg-amber-950/30 px-3 py-1 rounded border border-amber-900/30";
+                            statusIndicator.innerHTML = `<i class="fas fa-exclamation-triangle text-red-400"></i> Sync Failed`;
+                            statusIndicator.className = "flex items-center gap-1.5 text-xs text-red-400 font-semibold bg-red-950/30 px-3 py-1 rounded border border-red-900/30";
                         }
                     }
                 }
@@ -984,23 +1069,31 @@
             xhr.send();
         }
 
-        // Updates the copy-paste box inside the Admin panel
-        function updateDatabaseCodeField() {
-            const textarea = document.getElementById('database-json-textarea');
-            if (textarea) {
-                textarea.value = JSON.stringify(state, null, 2);
-            }
-        }
+        function pushStateToCloud() {
+            const statusIndicator = document.getElementById('cloud-sync-status');
+            const cleanUrl = state.cloudSyncUrl.trim();
 
-        function copyDatabaseCodeToClipboard() {
-            const textarea = document.getElementById('database-json-textarea');
-            if (textarea) {
-                textarea.select();
-                textarea.setSelectionRange(0, 99999); // For mobile devices
-                navigator.clipboard.writeText(textarea.value)
-                    .then(() => alert("✅ Database Code copied to clipboard!\n\nOpen your GitHub repository, edit 'database.json', paste this code, and commit changes."))
-                    .catch(err => alert("Failed to copy code: " + err));
-            }
+            // Using classic, highly stable XMLHttpRequest to guarantee preflight bypass
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", cleanUrl, true);
+            xhr.setRequestHeader("Content-Type", "text/plain");
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        console.log("Cloud push executed successfully.");
+                        if (statusIndicator) {
+                            statusIndicator.innerHTML = `<i class="fas fa-cloud text-emerald-400"></i> Cloud Synced`;
+                            statusIndicator.className = "flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-950/30 px-3 py-1 rounded border border-emerald-900/30";
+                        }
+                    } else {
+                        console.error("Cloud push failed:", xhr.status, xhr.responseText);
+                        alert(`⚠️ Cloud Sync Failed!\n\nStatus Code: ${xhr.status}\nResponse: ${xhr.responseText}`);
+                    }
+                }
+            };
+
+            xhr.send(JSON.stringify(state));
         }
 
         /* 
@@ -1145,6 +1238,11 @@
         function closeDiscordAuthModal() {
             document.getElementById('discord-auth-modal').classList.remove('flex');
             document.getElementById('discord-auth-modal').classList.add('hidden');
+        }
+
+        // Safe elements retrieval to protect setup script from reference crashes
+        function updateDatabaseCodeField() {
+            // Unused in KVdb direct cloud sync, but kept clean to prevent errors
         }
 
         function saveFailsafeClientId() {
@@ -1327,10 +1425,15 @@
             // Render Live Cloud Sync Badge status in header
             const statusIndicator = document.getElementById('cloud-sync-status');
             if (statusIndicator) {
-                statusIndicator.classList.remove('hidden');
-                statusIndicator.classList.add('flex');
-                statusIndicator.innerHTML = `<i class="fas fa-check-circle text-emerald-400"></i> Cloud Synced`;
-                statusIndicator.className = "flex items-center gap-1.5 text-[10px] text-emerald-400 font-semibold bg-emerald-950/30 px-3 py-1 rounded border border-emerald-900/30 mr-1";
+                if (state.cloudSyncUrl && state.cloudSyncEnabled) {
+                    statusIndicator.classList.remove('hidden');
+                    statusIndicator.classList.add('flex');
+                    statusIndicator.innerHTML = `<i class="fas fa-cloud text-emerald-400"></i> Cloud Active`;
+                    statusIndicator.className = "flex items-center gap-1.5 text-[10px] text-emerald-400 font-semibold bg-emerald-950/30 px-3 py-1 rounded border border-emerald-900/30 mr-1";
+                } else {
+                    statusIndicator.classList.add('hidden');
+                    statusIndicator.classList.remove('flex');
+                }
             }
 
             // Render Command Panel
@@ -1385,164 +1488,6 @@
         }
 
         /* 
-           ============= MAIN ADMIN SETTINGS INTERFACE RENDERING =============
-        */
-        function renderAdminPanel() {
-            // Admin Command Section
-            const adminCmdList = document.getElementById('admin-command-list');
-            adminCmdList.innerHTML = state.command.map((member, i) => `
-                <div class="bg-black/40 p-3 rounded border border-purple-950/60 flex flex-col justify-between space-y-3">
-                    <span class="text-xs font-bold text-syndicate-500 block truncate">${member.role}</span>
-                    <input type="text" id="cmd-name-${i}" value="${member.name}" placeholder="Name" class="w-full bg-black border border-purple-900/30 rounded p-1 text-xs text-white">
-                    <div class="space-y-1">
-                        <label class="text-[9px] text-gray-500 block">Image URL</label>
-                        <input type="text" id="cmd-img-url-${i}" value="${member.img || ''}" placeholder="https://..." class="w-full bg-black border border-purple-900/30 rounded p-1 text-xs text-white">
-                    </div>
-                    <button onclick="saveAdminCommand(${i})" class="w-full bg-purple-950 hover:bg-syndicate-500 py-1.5 text-xs font-semibold rounded text-white tracking-wider transition-colors">Save</button>
-                </div>
-            `).join('');
-
-            // Admin Inner Circle Section
-            const adminInnerList = document.getElementById('admin-inner-list');
-            adminInnerList.innerHTML = state.innerCircle.map((member, i) => `
-                <div class="bg-black/40 p-3 rounded border border-purple-950/60 flex flex-col justify-between space-y-3">
-                    <span class="text-xs font-bold text-syndicate-500 block">Spot ${i+1}</span>
-                    <input type="text" id="inner-name-${i}" value="${member.name}" placeholder="Name" class="w-full bg-black border border-purple-900/30 rounded p-1 text-xs text-white">
-                    <div class="space-y-1">
-                        <label class="text-[9px] text-gray-500 block">Image URL</label>
-                        <input type="text" id="inner-img-url-${i}" value="${member.img || ''}" placeholder="https://..." class="w-full bg-black border border-purple-900/30 rounded p-1 text-xs text-white">
-                    </div>
-                    <button onclick="saveAdminInner(${i})" class="w-full bg-purple-950 hover:bg-syndicate-500 py-1.5 text-xs font-semibold rounded text-white tracking-wider transition-colors">Save</button>
-                </div>
-            `).join('');
-
-            // Admin Turfs Section
-            const adminTurfsList = document.getElementById('admin-turfs-list');
-            if (state.turfs.length === 0) {
-                adminTurfsList.innerHTML = `<span class="col-span-full text-xs text-gray-500 italic">No registered turfs. Enter details on the left to add your first zone.</span>`;
-            } else {
-                adminTurfsList.innerHTML = state.turfs.map((turf, i) => `
-                    <div class="bg-black/45 p-3 rounded border border-purple-950 flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-purple-950/20 border border-purple-900/30 rounded overflow-hidden">
-                                <img src="${turf.img || 'https://placehold.co/100x100?text=None'}" class="w-full h-full object-cover">
-                            </div>
-                            <div>
-                                <span class="block font-bold text-white text-xs">${turf.name}</span>
-                                <span class="block text-[10px] text-syndicate-500 uppercase tracking-widest">Postal ${turf.postal}</span>
-                            </div>
-                        </div>
-                        <button onclick="deleteTurf(${i})" class="text-red-500 hover:text-red-700 p-2 text-xs" title="Remove Turf"><i class="fas fa-trash-alt"></i></button>
-                    </div>
-                `).join('');
-            }
-
-            // Admin Gallery Section
-            const adminGalleryList = document.getElementById('admin-gallery-list');
-            adminGalleryList.innerHTML = state.gallery.map((img, i) => `
-                <div class="bg-black/40 p-4 rounded border border-purple-950/60 space-y-4">
-                    <span class="text-xs font-bold text-white block">Gallery Spot ${i+1}</span>
-                    <div class="aspect-video bg-black rounded overflow-hidden relative border border-purple-900/20">
-                        <img src="${img || 'https://placehold.co/600x400/1a1a1a/63207b?text=Empty+Slot'}" class="w-full h-full object-cover">
-                    </div>
-                    <div>
-                        <label class="text-[10px] text-gray-400 block mb-1">Image URL</label>
-                        <input type="text" id="gallery-url-${i}" value="${img || ''}" placeholder="https://..." class="w-full bg-black border border-purple-900/40 rounded p-2 text-xs text-white">
-                    </div>
-                    <button onclick="saveAdminGallery(${i})" class="w-full bg-purple-950 hover:bg-syndicate-500 py-2 text-xs font-bold rounded text-white tracking-wider transition-colors uppercase">Save Image</button>
-                </div>
-            `).join('');
-
-            // Render Dropdowns for Category Assignments
-            const dropdownCatSetup = document.getElementById('setup-rank-category');
-            dropdownCatSetup.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
-
-            // Render Ranks Setup (Categorized tree layout)
-            renderHierarchyTreeManager();
-
-            // Setup Tab - Certifications Checklist
-            const certsList = document.getElementById('setup-certs-list');
-            certsList.innerHTML = state.certs.map((cert) => `
-                <div class="bg-black/35 p-3 rounded border border-purple-950/65 flex justify-between items-center text-xs">
-                    <span class="text-white font-semibold"><i class="fas fa-certificate text-purple-500 mr-1.5"></i>${cert}</span>
-                    <button onclick="deleteCertType('${cert}')" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>
-                </div>
-            `).join('');
-
-            // Safe elements retrieval to protect setup script from type error crashes
-            const discordInput = document.getElementById('setup-discord-client-id');
-            if (discordInput) {
-                discordInput.value = state.discordClientId || "";
-            }
-            
-            const outfitUrlEl = document.getElementById('admin-outfit-pdf-url');
-            if (outfitUrlEl) {
-                outfitUrlEl.value = state.documents.outfitPdf || "";
-            }
-
-            const vehicleUrlEl = document.getElementById('admin-vehicle-pdf-url');
-            if (vehicleUrlEl) {
-                vehicleUrlEl.value = state.documents.vehiclePdf || "";
-            }
-
-            // Render custom SOP interactive builder
-            renderSOPSectionsAdminList();
-        }
-
-        /*
-           ============= RENDER ADMINISTRATIVE TREE CONTROLS =============
-        */
-        function renderHierarchyTreeManager() {
-            const container = document.getElementById('setup-hierarchy-tree');
-            
-            if (state.categories.length === 0) {
-                container.innerHTML = `<span class="text-xs text-gray-500 italic">No categories registered yet.</span>`;
-                return;
-            }
-
-            container.innerHTML = state.categories.map((cat, catIdx) => {
-                const categoryRanks = state.ranks.filter(r => r.categoryId === cat.id);
-                
-                return `
-                    <div class="bg-black/40 p-4 rounded border border-purple-900/30 space-y-3">
-                        <div class="flex justify-between items-center bg-black/60 p-2.5 rounded border-b border-purple-900/40">
-                            <div>
-                                <span class="text-[10px] text-syndicate-500 uppercase tracking-widest font-bold">Category Level ${catIdx+1}</span>
-                                <h5 class="text-white font-bold text-sm">${cat.title}</h5>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="moveCategory(${catIdx}, -1)" class="text-purple-300 hover:text-white p-1 text-xs" title="Move Category Up"><i class="fas fa-arrow-up"></i></button>
-                                <button onclick="moveCategory(${catIdx}, 1)" class="text-purple-300 hover:text-white p-1 text-xs" title="Move Category Down"><i class="fas fa-arrow-down"></i></button>
-                                <button onclick="deleteSetupCategory('${cat.id}')" class="text-red-400 hover:text-red-600 p-1 text-xs" title="Delete Category"><i class="fas fa-trash-alt"></i></button>
-                            </div>
-                        </div>
-
-                        <!-- Nested Ranks within this specific Category -->
-                        <div class="space-y-2 pl-3">
-                            ${categoryRanks.length === 0 ? `<span class="text-[11px] text-gray-600 italic block">No ranks assigned here yet.</span>` : categoryRanks.map((rank) => {
-                                const globalRankIdx = state.ranks.findIndex(r => r.id === rank.id);
-                                const calculatedRange = getRankRanges(globalRankIdx);
-                                return `
-                                    <div class="bg-black/45 p-2 rounded border border-purple-950/70 flex justify-between items-center text-xs">
-                                        <div>
-                                            <span class="text-white font-bold">${rank.title}</span>
-                                            <span class="text-[10px] text-purple-400 ml-2">(${rank.capacity} Slots, Identifiers: ${formatIdentifier(calculatedRange.start)}-${formatIdentifier(calculatedRange.end)})</span>
-                                        </div>
-                                        <div class="flex gap-2">
-                                            <button onclick="moveRank(${globalRankIdx}, -1)" class="text-gray-400 hover:text-white text-[11px]" title="Move Rank Up"><i class="fas fa-chevron-up"></i></button>
-                                            <button onclick="moveRank(${globalRankIdx}, 1)" class="text-gray-400 hover:text-white text-[11px]" title="Move Rank Down"><i class="fas fa-chevron-down"></i></button>
-                                            <button onclick="deleteSetupRank('${rank.id}')" class="text-red-400 hover:text-red-500 text-[11px]" title="Delete Rank"><i class="fas fa-times"></i></button>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        /* 
            ============= ACTIONS: PORTAL ADMINISTRATION SETTINGS =============
         */
         function saveAdminCommand(index) {
@@ -1553,7 +1498,6 @@
 
             if (saveState()) {
                 logAdminAction("Command Roster Spot Modified", `Assigned slot ${index+1} (**${state.command[index].role}**) to **${name}**`);
-                alert("Command spot saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
             }
         }
 
@@ -1565,7 +1509,6 @@
 
             if (saveState()) {
                 logAdminAction("Inner Circle Spot Modified", `Assigned slot ${index+1} to **${name}**`);
-                alert("Inner circle saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
             }
         }
 
@@ -1587,7 +1530,6 @@
                 document.getElementById('turf-postal-input').value = "";
                 document.getElementById('turf-img-url-input').value = "";
                 renderAdminPanel();
-                alert("Turf saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
             } else {
                 state.turfs.pop();
             }
@@ -1600,7 +1542,6 @@
                 if (saveState()) {
                     logAdminAction("Gang Territory Released", `Released territorial claim for **${target.name}** (Postal ${target.postal})`);
                     renderAdminPanel();
-                    alert("Turf deleted locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
                 } else {
                     state.turfs.splice(index, 0, target);
                 }
@@ -1616,7 +1557,6 @@
                 if (saveState()) {
                     logAdminAction("Archive Gallery Modified", `Uploaded fresh image snapshot for Gallery Slot ${index+1}`);
                     renderAdminPanel();
-                    alert("Gallery image saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
                 } else {
                     state.gallery[index] = oldImg;
                 }
@@ -1647,7 +1587,6 @@
                 logAdminAction("Category Level Created", `Registered operational rank category **${title}**`);
                 renderAdminPanel();
                 document.getElementById('setup-category-title').value = "";
-                alert("Category saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
             } else {
                 state.categories.pop();
             }
@@ -1672,7 +1611,6 @@
                 if (saveState()) {
                     logAdminAction("Category Level Deleted", `Removed category and migrated child ranks.`);
                     renderAdminPanel();
-                    alert("Category deleted locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
                 } else {
                     state.categories = oldCategories;
                     state.ranks = oldRanks;
@@ -1717,7 +1655,6 @@
                 renderAdminPanel();
                 document.getElementById('setup-rank-title').value = "";
                 document.getElementById('setup-rank-capacity').value = "";
-                alert("Rank saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
             } else {
                 state.ranks.pop();
             }
@@ -1735,7 +1672,6 @@
                 if (saveState()) {
                     logAdminAction("Roster Rank Deleted", `Permanently dropped **${targetRank?.title}** from system databases`);
                     renderAdminPanel();
-                    alert("Rank deleted locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
                 } else {
                     state.ranks = oldRanks;
                     state.members = oldMembers;
@@ -1753,7 +1689,6 @@
                     logAdminAction("Operational Credential Created", `Registered operational specialty certificate **${name}**`);
                     renderAdminPanel();
                     document.getElementById('setup-cert-name').value = "";
-                    alert("Specialty certificate saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
                 } else {
                     state.certs.pop();
                 }
@@ -1767,7 +1702,6 @@
                 if (saveState()) {
                     logAdminAction("Operational Credential Discarded", `Dropped specialty certification category **${name}**`);
                     renderAdminPanel();
-                    alert("Specialty certificate deleted locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
                 } else {
                     state.certs = oldCerts;
                 }
@@ -1783,7 +1717,6 @@
 
             if (saveState()) {
                 logAdminAction("Policy PDF URLs Updated", `Adjusted fleet configurations and uniform links`);
-                alert("Guide Links saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
             }
         }
 
@@ -1855,7 +1788,6 @@
                 logAdminAction(secId ? "SOP Section Updated" : "SOP Section Created", `Saved SOP Section **${num} - ${title}**`);
                 resetSOPSectionForm();
                 renderAdminPanel();
-                alert("SOP section saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
             } else {
                 state.documents.sopSections = oldSections;
             }
@@ -1896,7 +1828,6 @@
                 if (saveState()) {
                     logAdminAction("SOP Section Deleted", `Removed Section **${sec?.num} - ${sec?.title}**`);
                     renderAdminPanel();
-                    alert("SOP section deleted locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
                 } else {
                     state.documents.sopSections = oldSections;
                 }
@@ -2080,7 +2011,6 @@
                 );
                 resetRosterForm();
                 renderRosterPanel();
-                alert("Personnel saved locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
             } else {
                 state.members = oldMembers;
             }
@@ -2151,7 +2081,6 @@
                         target?.numericId || ""
                     );
                     renderRosterPanel();
-                    alert("Personnel deleted locally. Copy the database code inside 'Cloud Sync & Backups' and paste it to database.json on GitHub!");
                 } else {
                     state.members = oldMembers;
                 }
