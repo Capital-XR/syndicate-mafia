@@ -360,7 +360,7 @@
                         <span class="text-gray-600 hidden sm:inline">|</span>
                         <div id="admin-logged-user-display" class="flex items-center gap-1.5 text-xs text-purple-400 mr-2"></div>
                         <span class="text-gray-600 hidden sm:inline">|</span>
-                        <div id="active-db-display-label" class="text-[10px] text-purple-400 bg-purple-950/20 border border-purple-900/35 px-2 py-0.5 rounded font-mono font-bold">DATABASE: KVdb Cloud Sync Active</div>
+                        <div id="active-db-display-label" class="text-[10px] text-purple-400 bg-purple-950/20 border border-purple-900/35 px-2 py-0.5 rounded font-mono font-bold">DATABASE: Local Baseline Active</div>
                     </div>
                 </div>
                 <button onclick="closeAdminPortal()" class="bg-red-950/40 hover:bg-red-800 text-white px-4 py-2 rounded text-xs uppercase tracking-wider font-bold transition-colors">
@@ -584,7 +584,7 @@
                         <div class="space-y-2">
                             <h4 class="font-bold text-purple-400 text-xs uppercase tracking-wider">Cloud Sync Dashboard</h4>
                             <p class="text-xs text-gray-300 leading-relaxed">
-                                Your website is now hard-wired to your private **KVdb.io** database. All edits made in this portal sync globally across devices in real-time. No manual configuration is required.
+                                Your website configuration can optionally wire to a private **KVdb.io** database. By default, it runs offline using the hardcoded default baseline in this code, protecting you from remote sync overwrites.
                             </p>
                             <div class="bg-purple-950/20 p-4 rounded text-xs text-purple-300 leading-relaxed border border-purple-900/30 space-y-2">
                                 <strong>Active Connected Database:</strong>
@@ -836,23 +836,6 @@
 
     <!-- MAIN JAVASCRIPT STATE AND FUNCTIONS -->
     <script>
-        // Self-Healing Startup Script: Wipe out any old localStorage conflicts with old structures
-        const localStateRaw = localStorage.getItem('lsm_state');
-        if (localStateRaw) {
-            try {
-                const parsed = JSON.parse(localStateRaw);
-                if (parsed.cloudSyncUrl && parsed.cloudSyncUrl.includes("jsonbin.io")) {
-                    console.log("Self-healing: Cleaning up old settings.");
-                    localStorage.removeItem('lsm_state');
-                    localStorage.removeItem('lsm_discord_user');
-                    sessionStorage.clear();
-                    window.location.reload();
-                }
-            } catch (e) {
-                console.error("Self-healing error:", e);
-            }
-        }
-
         // Core Configured System Credentials & Webhooks
         const CODES = {
             admin: "LSM#ADMIN!26",
@@ -864,25 +847,27 @@
             roster: "https://discord.com/api/webhooks/1526588361492533331/-M5Cv6VUbwI9LDSxS1-Yx_hE2zsbXJqB8eDBG4eDXWJVa4VXCIVsgPWr7_NLEO4vp0xZ"
         };
 
-        // Complete Default State Setup
+        // Complete Default Hardcoded State Setup (Info saved directly in code!)
         const DEFAULT_STATE = {
             command: [
-                { role: "Leading Commissioner", name: "Vacant", img: "" },
-                { role: "Executive Commissioner", name: "Vacant", img: "" },
-                { role: "Asst. Executive Commissioner", name: "Vacant", img: "" },
-                { role: "Commissioner", name: "Vacant", img: "" },
-                { role: "Asst. Commissioner", name: "Vacant", img: "" }
+                { role: "Leading Commissioner", name: "M. Perez", img: "" },
+                { role: "Executive Commissioner", name: "A. Morado", img: "" },
+                { role: "Asst. Executive Commissioner", name: "J. Morado", img: "" },
+                { role: "Commissioner", name: "D. Vega", img: "" },
+                { role: "Asst. Commissioner", name: "E. Silva", img: "" }
             ],
             innerCircle: [
-                { role: "Inner Circle Spot 1", name: "Vacant", img: "" },
-                { role: "Inner Circle Spot 2", name: "Vacant", img: "" },
-                { role: "Inner Circle Spot 3", name: "Vacant", img: "" },
+                { role: "Inner Circle Spot 1", name: "S. Ramirez", img: "" },
+                { role: "Inner Circle Spot 2", name: "R. Blanco", img: "" },
+                { role: "Inner Circle Spot 3", name: "M. Ortiz", img: "" },
                 { role: "Inner Circle Spot 4", name: "Vacant", img: "" },
                 { role: "Inner Circle Spot 5", name: "Vacant", img: "" }
             ],
             turfs: [
                 { postal: "704", name: "Vespucci HQ", img: "" },
-                { postal: "412", name: "Mirror Park Compound", img: "" }
+                { postal: "412", name: "Mirror Park Compound", img: "" },
+                { postal: "502", name: "El Rancho Warehouse", img: "" },
+                { postal: "104", name: "Chumash Hideout", img: "" }
             ],
             gallery: ["", "", ""],
             categories: [
@@ -898,22 +883,143 @@
                 { id: "r5", title: "Asst. Commissioner", capacity: 20, categoryId: "cat-3" }
             ],
             certs: ["Combat Operations", "High Speed Driving", "Tactical Comms", "Executive Escort", "Heavy Arms Specialist"],
-            members: [],
+            members: [
+                {
+                    id: "m-1",
+                    rankId: "r1",
+                    identifier: 1,
+                    name: "M. Perez",
+                    discordId: "perez#0000",
+                    numericId: "1526588065923989607",
+                    joinDate: "2026-01-10",
+                    promoDate: "2026-02-15",
+                    status: "Active",
+                    certs: ["Combat Operations", "Tactical Comms"],
+                    warnings: 0,
+                    strikes: 0,
+                    blacklist: false,
+                    notes: "High Command Lead."
+                },
+                {
+                    id: "m-2",
+                    rankId: "r2",
+                    identifier: 6,
+                    name: "A. Morado",
+                    discordId: "morado#1111",
+                    numericId: "1526588361492533331",
+                    joinDate: "2026-01-12",
+                    promoDate: "2026-03-01",
+                    status: "Active",
+                    certs: ["High Speed Driving", "Executive Escort"],
+                    warnings: 0,
+                    strikes: 0,
+                    blacklist: false,
+                    notes: "Directs city deployment."
+                },
+                {
+                    id: "m-3",
+                    rankId: "r3",
+                    identifier: 12,
+                    name: "J. Morado",
+                    discordId: "jmorado#2222",
+                    numericId: "",
+                    joinDate: "2026-01-15",
+                    promoDate: "2026-04-10",
+                    status: "Active",
+                    certs: ["Heavy Arms Specialist"],
+                    warnings: 0,
+                    strikes: 0,
+                    blacklist: false,
+                    notes: "Oversees local logistics operations."
+                },
+                {
+                    id: "m-4",
+                    rankId: "r4",
+                    identifier: 22,
+                    name: "D. Vega",
+                    discordId: "vega#3333",
+                    numericId: "",
+                    joinDate: "2026-02-20",
+                    promoDate: "2026-05-01",
+                    status: "Active",
+                    certs: ["Combat Operations"],
+                    warnings: 0,
+                    strikes: 0,
+                    blacklist: false,
+                    notes: "Operational tactical asset."
+                },
+                {
+                    id: "m-5",
+                    rankId: "r4",
+                    identifier: 23,
+                    name: "R. Blanco",
+                    discordId: "blanco#4444",
+                    numericId: "",
+                    joinDate: "2026-02-22",
+                    promoDate: "2026-05-05",
+                    status: "Active",
+                    certs: ["Tactical Comms"],
+                    warnings: 0,
+                    strikes: 0,
+                    blacklist: false,
+                    notes: "Communications operations lead."
+                },
+                {
+                    id: "m-6",
+                    rankId: "r5",
+                    identifier: 37,
+                    name: "E. Silva",
+                    discordId: "silva#5555",
+                    numericId: "",
+                    joinDate: "2026-03-01",
+                    promoDate: "2026-06-01",
+                    status: "Active",
+                    certs: ["High Speed Driving"],
+                    warnings: 0,
+                    strikes: 0,
+                    blacklist: false,
+                    notes: "San Andreas transport operator."
+                },
+                {
+                    id: "m-7",
+                    rankId: "r5",
+                    identifier: 38,
+                    name: "S. Ramirez",
+                    discordId: "ramirez#6666",
+                    numericId: "",
+                    joinDate: "2026-03-05",
+                    promoDate: "2026-06-10",
+                    status: "LOA",
+                    certs: [],
+                    warnings: 1,
+                    strikes: 0,
+                    blacklist: false,
+                    notes: "Temporary leave of absence."
+                }
+            ],
             documents: {
                 sopSections: [
                     {
                         id: "sec-1",
                         num: "1.1",
-                        title: "Following PSRP Gang Rules",
-                        text: "All members must strictly enforce server Rules. Out of character disputes must never bleed into operations.",
+                        title: "Code of Conduct",
+                        text: "All members of Los Santos Morados must uphold absolute loyalty, discipline, and silence. Accents, vehicles, and attire must strictly align with designated Morado color directives.",
                         btnLabel: "Official Discord",
                         btnUrl: "https://discord.gg/wsErXv86QQ"
                     },
                     {
                         id: "sec-2",
                         num: "1.2",
-                        title: "Command Directives",
-                        text: "Decisions made by the leading commission are absolute. Subordinate personnel must execute directives without question.",
+                        title: "Hierarchy & Directives",
+                        text: "Decisions made by the leading commission are final and absolute. Personnel are required to follow command instructions in active conflict scenarios without hesitation.",
+                        btnLabel: "",
+                        btnUrl: ""
+                    },
+                    {
+                        id: "sec-3",
+                        num: "1.3",
+                        title: "Uniform Guidelines",
+                        text: "When representing the organization, members must wear strict formal attire consisting of black suits accompanied by deep purple or morado highlights.",
                         btnLabel: "",
                         btnUrl: ""
                     }
@@ -925,29 +1031,18 @@
             cloudSyncUrl: "https://kvdb.io/Db9q9z4t3H3GaZa63bAdkt/lsm_state",
             cloudSyncHeaderKey: "",
             cloudSyncHeaderVal: "",
-            cloudSyncEnabled: true
+            cloudSyncEnabled: false // Offline fallback enabled by default to prevent blank cloud overwrites!
         };
 
         let state = JSON.parse(localStorage.getItem('lsm_state')) || DEFAULT_STATE;
         
-        // Quick State Migrations/Safeguards for older storage structures
+        // Safeguards to ensure structure compatibility
         if(!state.categories) state.categories = DEFAULT_STATE.categories;
         if(!state.ranks) state.ranks = DEFAULT_STATE.ranks;
         if(!state.certs) state.certs = DEFAULT_STATE.certs;
         if(!state.members) state.members = DEFAULT_STATE.members;
         if(!state.documents) state.documents = DEFAULT_STATE.documents;
         if(state.discordClientId === undefined) state.discordClientId = "";
-        
-        // Always force correct active properties on startup
-        state.cloudSyncUrl = "https://kvdb.io/Db9q9z4t3H3GaZa63bAdkt/lsm_state";
-        state.cloudSyncHeaderKey = "";
-        state.cloudSyncHeaderVal = "";
-        state.cloudSyncEnabled = true;
-
-        // Backward compatibility parsing
-        if (!state.documents.sopSections) {
-            state.documents.sopSections = DEFAULT_STATE.documents.sopSections;
-        }
 
         // Ensure rank migrations have assigned categories
         state.ranks.forEach(r => {
@@ -956,10 +1051,10 @@
             }
         });
 
-        let activePortalMode = ""; // Either 'admin' or 'roster'
+        let activePortalMode = ""; 
         let currentUser = JSON.parse(sessionStorage.getItem('lsm_discord_user')) || null;
 
-        // Save state locally and immediately synchronize to the cloud
+        // Save State locally and trigger sync only if configured & enabled
         function saveState() {
             try {
                 localStorage.setItem('lsm_state', JSON.stringify(state));
@@ -979,6 +1074,11 @@
            ============= CLOUD SYNCHRONISATION CONTROLLERS =============
         */
         function loadStateFromCloud() {
+            if (!state.cloudSyncEnabled) {
+                renderWebsite();
+                return;
+            }
+
             const statusIndicator = document.getElementById('cloud-sync-status');
             if (statusIndicator) {
                 statusIndicator.classList.remove('hidden');
@@ -994,23 +1094,13 @@
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4) {
                     if (xhr.status === 404) {
-                        console.log("Cloud Database is currently empty.");
-                        // Heal the cloud on load if local has data
-                        const localHasData = state.members && state.members.length > 0;
-                        const localHasCommand = state.command && state.command.some(c => c.name && c.name !== "Vacant");
-                        if (localHasData || localHasCommand) {
-                            console.log("Auto-pushing populated local state to empty cloud...");
-                            pushStateToCloud();
-                        }
+                        console.log("Cloud Database empty. Push current baseline state.");
+                        pushStateToCloud();
                         renderWebsite();
-                        if (statusIndicator) {
-                            statusIndicator.innerHTML = `<i class="fas fa-cloud text-lsm-400"></i> Cloud Ready`;
-                            statusIndicator.className = "flex items-center gap-1.5 text-xs text-lsm-400 font-semibold bg-lsm-950/30 px-3 py-1 rounded border border-lsm-900/30";
-                        }
                     } else if (xhr.status >= 200 && xhr.status < 300) {
                         try {
                             const cloudData = JSON.parse(xhr.responseText);
-                            // Strict validation guard: check structure to prevent overwriting with `{}` or empty data
+                            // Strict validation guard: check structure to avoid blank database pull
                             if (cloudData && Array.isArray(cloudData.command) && Array.isArray(cloudData.members) && cloudData.command.length > 0) {
                                 state = cloudData;
                                 localStorage.setItem('lsm_state', JSON.stringify(state));
@@ -1020,14 +1110,8 @@
                                     statusIndicator.className = "flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-950/30 px-3 py-1 rounded border border-emerald-900/30 font-bold";
                                 }
                             } else {
-                                console.warn("Invalid cloud structure pulled. Preventing local state overwrite.");
-                                // Automatically repair the empty cloud using local data
-                                const localHasData = state.members && state.members.length > 0;
-                                const localHasCommand = state.command && state.command.some(c => c.name && c.name !== "Vacant");
-                                if (localHasData || localHasCommand) {
-                                    console.log("Repairing invalid cloud database with local data...");
-                                    pushStateToCloud();
-                                }
+                                console.warn("Pulled invalid/empty cloud structure. Baseline preserved.");
+                                pushStateToCloud(); // Push populated baseline state up to heal database
                                 renderWebsite();
                             }
                         } catch (e) {
@@ -1035,7 +1119,6 @@
                             renderWebsite();
                         }
                     } else {
-                        console.error("Cloud pull failed:", xhr.status, xhr.responseText);
                         renderWebsite();
                         if (statusIndicator) {
                             statusIndicator.innerHTML = `<i class="fas fa-exclamation-triangle text-red-400"></i> Sync Failed`;
@@ -1049,6 +1132,7 @@
         }
 
         function pushStateToCloud() {
+            if (!state.cloudSyncEnabled) return;
             const statusIndicator = document.getElementById('cloud-sync-status');
             const cleanUrl = state.cloudSyncUrl.trim();
 
@@ -1064,8 +1148,6 @@
                             statusIndicator.innerHTML = `<i class="fas fa-cloud text-emerald-400"></i> Cloud Synced`;
                             statusIndicator.className = "flex items-center gap-1.5 text-xs text-emerald-400 font-semibold bg-emerald-950/30 px-3 py-1 rounded border border-emerald-900/30";
                         }
-                    } else {
-                        console.error("Cloud push failed:", xhr.status, xhr.responseText);
                     }
                 }
             };
@@ -1086,7 +1168,10 @@
                 state.cloudSyncEnabled = enabledCheck;
 
                 if (saveState()) {
-                    alert("Cloud Sync configuration saved and uploaded!");
+                    alert("Cloud Sync configuration saved!");
+                    if (enabledCheck) {
+                        pushStateToCloud();
+                    }
                 }
             } else {
                 alert("Please specify a valid Cloud Sync URL.");
@@ -1094,15 +1179,21 @@
         }
 
         function triggerManualCloudPush() {
-            if(confirm("Are you sure you want to push your local database state to overwrite the cloud state?")) {
+            if(confirm("Push local browser database state to overwrite cloud database?")) {
+                const prevSyncState = state.cloudSyncEnabled;
+                state.cloudSyncEnabled = true; // Force-enable for immediate dispatch
                 pushStateToCloud();
-                alert("Local data state successfully pushed to cloud!");
+                state.cloudSyncEnabled = prevSyncState;
+                alert("Database state pushed to cloud successfully.");
             }
         }
 
         function triggerManualCloudPull() {
-            if(confirm("Are you sure you want to pull the cloud state? This will overwrite your current unsaved browser modifications.")) {
+            if(confirm("Force-pull database state from cloud? This will discard current unsaved browser modifications.")) {
+                const prevSyncState = state.cloudSyncEnabled;
+                state.cloudSyncEnabled = true;
                 loadStateFromCloud();
+                state.cloudSyncEnabled = prevSyncState;
             }
         }
 
@@ -1191,8 +1282,6 @@
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error(`Discord API returned error code ${response.status}: ${errorText}`);
-                } else {
-                    console.log("Discord Webhook successfully delivered.");
                 }
             } catch(err) {
                 console.error("Webhook Network Delivery Failed:", err);
@@ -1207,7 +1296,7 @@
             return {
                 title: title,
                 description: description,
-                color: color || 6501115, // Morados Deep Purple
+                color: color || 6501115, 
                 fields: [
                     ...fields,
                     { name: "Logged Operator", value: operatorStr, inline: true },
@@ -1298,7 +1387,7 @@
             }
             state.discordClientId = val;
             if (saveState()) {
-                alert("Client ID saved. You can now use the Discord OAuth authentication flow.");
+                alert("Client ID saved successfully.");
                 openDiscordAuthModal();
             }
         }
@@ -1306,7 +1395,7 @@
         function triggerDiscordOAuthRedirect() {
             const clientId = state.discordClientId || DEFAULT_STATE.discordClientId;
             if(!clientId) {
-                alert("No Discord OAuth Client ID configured. Please configure it inside the setup container.");
+                alert("No Discord OAuth Client ID configured. Configure inside the setup container.");
                 return;
             }
 
@@ -1655,57 +1744,6 @@
             renderSOPSectionsAdminList();
         }
 
-        function renderHierarchyTreeManager() {
-            const container = document.getElementById('setup-hierarchy-tree');
-            if (!container) return;
-            
-            if (state.categories.length === 0) {
-                container.innerHTML = `<span class="text-xs text-gray-500 italic">No categories registered yet.</span>`;
-                return;
-            }
-
-            container.innerHTML = state.categories.map((cat, catIdx) => {
-                const categoryRanks = state.ranks.filter(r => r.categoryId === cat.id);
-                
-                return `
-                    <div class="bg-black/40 p-4 rounded border border-purple-900/30 space-y-3">
-                        <div class="flex justify-between items-center bg-black/60 p-2.5 rounded border-b border-purple-900/40">
-                            <div>
-                                <span class="text-[10px] text-lsm-500 uppercase tracking-widest font-bold">Category Level ${catIdx+1}</span>
-                                <h5 class="text-white font-bold text-sm">${cat.title}</h5>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="moveCategory(${catIdx}, -1)" class="text-purple-300 hover:text-white p-1 text-xs" title="Move Category Up"><i class="fas fa-arrow-up"></i></button>
-                                <button onclick="moveCategory(${catIdx}, 1)" class="text-purple-300 hover:text-white p-1 text-xs" title="Move Category Down"><i class="fas fa-arrow-down"></i></button>
-                                <button onclick="deleteSetupCategory('${cat.id}')" class="text-red-400 hover:text-red-600 p-1 text-xs" title="Delete Category"><i class="fas fa-trash-alt"></i></button>
-                            </div>
-                        </div>
-
-                        <!-- Nested Ranks within Category -->
-                        <div class="space-y-2 pl-3">
-                            ${categoryRanks.length === 0 ? `<span class="text-[11px] text-gray-600 italic block">No ranks assigned here yet.</span>` : categoryRanks.map((rank) => {
-                                const globalRankIdx = state.ranks.findIndex(r => r.id === rank.id);
-                                const calculatedRange = getRankRanges(globalRankIdx);
-                                return `
-                                    <div class="bg-black/45 p-2 rounded border border-purple-950/70 flex justify-between items-center text-xs">
-                                        <div>
-                                            <span class="text-white font-bold">${rank.title}</span>
-                                            <span class="text-[10px] text-purple-400 ml-2">(${rank.capacity} Slots, Identifiers: ${formatIdentifier(calculatedRange.start)}-${formatIdentifier(calculatedRange.end)})</span>
-                                        </div>
-                                        <div class="flex gap-2">
-                                            <button onclick="moveRank(${globalRankIdx}, -1)" class="text-gray-400 hover:text-white text-[11px]" title="Move Rank Up"><i class="fas fa-chevron-up"></i></button>
-                                            <button onclick="moveRank(${globalRankIdx}, 1)" class="text-gray-400 hover:text-white text-[11px]" title="Move Rank Down"><i class="fas fa-chevron-down"></i></button>
-                                            <button onclick="deleteSetupRank('${rank.id}')" class="text-red-400 hover:text-red-500 text-[11px]" title="Delete Rank"><i class="fas fa-times"></i></button>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
         function saveAdminCommand(index) {
             const name = document.getElementById(`cmd-name-${index}`).value;
             const urlInput = document.getElementById(`cmd-img-url-${index}`);
@@ -1714,7 +1752,7 @@
 
             if (saveState()) {
                 logAdminAction("Command Roster Spot Modified", `Assigned slot ${index+1} (**${state.command[index].role}**) to **${name}**`);
-                alert("Roster spot configuration applied.");
+                alert("Roster configuration saved.");
             }
         }
 
@@ -1726,7 +1764,7 @@
 
             if (saveState()) {
                 logAdminAction("Inner Circle Spot Modified", `Assigned slot ${index+1} to **${name}**`);
-                alert("Inner Circle configuration applied.");
+                alert("Inner Circle configuration saved.");
             }
         }
 
@@ -2242,7 +2280,7 @@
                 );
                 resetRosterForm();
                 renderRosterPanel();
-                alert("Personnel configuration applied.");
+                alert("Personnel saved successfully.");
             } else {
                 state.members = oldMembers;
             }
@@ -2623,6 +2661,60 @@
                     </div>
                 `;
             }
+        }
+
+        /*
+           ============= HIERARCHY SETUP AND MANAGEMENT =============
+        */
+        function renderHierarchyTreeManager() {
+            const container = document.getElementById('setup-hierarchy-tree');
+            if (!container) return;
+            
+            if (state.categories.length === 0) {
+                container.innerHTML = `<span class="text-xs text-gray-500 italic">No categories registered yet.</span>`;
+                return;
+            }
+
+            container.innerHTML = state.categories.map((cat, catIdx) => {
+                const categoryRanks = state.ranks.filter(r => r.categoryId === cat.id);
+                
+                return `
+                    <div class="bg-black/40 p-4 rounded border border-purple-900/30 space-y-3">
+                        <div class="flex justify-between items-center bg-black/60 p-2.5 rounded border-b border-purple-900/40">
+                            <div>
+                                <span class="text-[10px] text-lsm-500 uppercase tracking-widest font-bold">Category Level ${catIdx+1}</span>
+                                <h5 class="text-white font-bold text-sm">${cat.title}</h5>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="moveCategory(${catIdx}, -1)" class="text-purple-300 hover:text-white p-1 text-xs" title="Move Category Up"><i class="fas fa-arrow-up"></i></button>
+                                <button onclick="moveCategory(${catIdx}, 1)" class="text-purple-300 hover:text-white p-1 text-xs" title="Move Category Down"><i class="fas fa-arrow-down"></i></button>
+                                <button onclick="deleteSetupCategory('${cat.id}')" class="text-red-400 hover:text-red-600 p-1 text-xs" title="Delete Category"><i class="fas fa-trash-alt"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Nested Ranks within Category -->
+                        <div class="space-y-2 pl-3">
+                            ${categoryRanks.length === 0 ? `<span class="text-[11px] text-gray-600 italic block">No ranks assigned here yet.</span>` : categoryRanks.map((rank) => {
+                                const globalRankIdx = state.ranks.findIndex(r => r.id === rank.id);
+                                const calculatedRange = getRankRanges(globalRankIdx);
+                                return `
+                                    <div class="bg-black/45 p-2 rounded border border-purple-950/70 flex justify-between items-center text-xs">
+                                        <div>
+                                            <span class="text-white font-bold">${rank.title}</span>
+                                            <span class="text-[10px] text-purple-400 ml-2">(${rank.capacity} Slots, Identifiers: ${formatIdentifier(calculatedRange.start)}-${formatIdentifier(calculatedRange.end)})</span>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <button onclick="moveRank(${globalRankIdx}, -1)" class="text-gray-400 hover:text-white text-[11px]" title="Move Rank Up"><i class="fas fa-chevron-up"></i></button>
+                                            <button onclick="moveRank(${globalRankIdx}, 1)" class="text-gray-400 hover:text-white text-[11px]" title="Move Rank Down"><i class="fas fa-chevron-down"></i></button>
+                                            <button onclick="deleteSetupRank('${rank.id}')" class="text-red-400 hover:text-red-500 text-[11px]" title="Delete Rank"><i class="fas fa-times"></i></button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         /*
