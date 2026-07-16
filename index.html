@@ -9,7 +9,7 @@
     <!-- Google Fonts: Cinzel & Montserrat -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link class="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
         tailwind.config = {
@@ -326,7 +326,7 @@
                     </div>
                     <p class="text-gray-400 text-sm mb-6">Review approved vehicle rules, colors, speed structures, and active operations.</p>
                 </div>
-                <button onclick="openDocumentsViewer()" class="flex justify-between items-center text-xs bg-purple-950/30 hover:bg-purple-950/70 p-3 rounded border border-purple-900/30 transition-colors mt-auto w-full text-left">
+                <button onclick="openDocumentsViewer('vehicles')" class="flex justify-between items-center text-xs bg-purple-950/30 hover:bg-purple-950/70 p-3 rounded border border-purple-900/30 transition-colors mt-auto w-full text-left">
                     <span>View Vehicle Presentation</span>
                     <i class="fas fa-file-pdf text-lsm-500"></i>
                 </button>
@@ -351,7 +351,7 @@
                         </li>
                     </ul>
                 </div>
-                <button onclick="openDocumentsViewer()" class="flex justify-between items-center text-xs bg-purple-950/30 hover:bg-purple-950/70 p-3 rounded border border-purple-900/30 transition-colors mt-auto w-full text-left">
+                <button onclick="openDocumentsViewer('outfits')" class="flex justify-between items-center text-xs bg-purple-950/30 hover:bg-purple-950/70 p-3 rounded border border-purple-900/30 transition-colors mt-auto w-full text-left">
                     <span>View Outfit Presentation</span>
                     <i class="fas fa-file-pdf text-lsm-500"></i>
                 </button>
@@ -407,7 +407,7 @@
                 <!-- Turf 4 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 rounded-lg overflow-hidden transition-all flex flex-col justify-between">
                     <div class="h-40 bg-purple-950/20 overflow-hidden relative border-b border-purple-950/40">
-                        <img src="35063e.png" onerror="this.src='images.jpg'" alt="Turf" class="w-full h-full object-cover">
+                        <img src="35063e.png" onerror="this.src='images.jpg'; this.onerror=null;" alt="Turf" class="w-full h-full object-cover">
                         <span class="absolute top-2 right-2 bg-lsm-500 text-white font-bold text-[10px] px-2 py-0.5 rounded tracking-wide">POSTAL 000</span>
                     </div>
                     <div class="p-4 text-center">
@@ -470,7 +470,7 @@
             <div class="flex justify-between items-center bg-purple-950 px-6 py-4 text-white">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full border border-purple-300 flex items-center justify-center bg-purple-900 text-xs text-purple-200">𝔖</div>
-                    <span class="serif-font font-black tracking-wider text-sm">LOS SANTOS MORADOS</span>
+                    <span class="serif-font font-black tracking-wider text-sm">LOS SANTOS MORADOS DOSSIER - SOP & INFORMATION</span>
                 </div>
                 <button onclick="closeDocumentsViewer()" class="text-gray-300 hover:text-white text-lg"><i class="fas fa-times"></i></button>
             </div>
@@ -478,7 +478,7 @@
             <!-- Documents Panel Grid -->
             <div class="grid md:grid-cols-12 min-h-[600px]">
                 <div class="md:col-span-4 bg-[#decb9f] border-r border-amber-900/10 p-6">
-                    <h3 class="sop-serif font-black text-xs tracking-wider uppercase mb-6 border-b border-purple-950/20 pb-2">Document Index</h3>
+                    <h3 class="sop-serif font-black text-xs tracking-wider uppercase mb-6 border-b border-purple-950/20 pb-2">Information Index</h3>
                     <ul class="space-y-4 text-xs font-semibold text-purple-950">
                         <li>
                             <button onclick="switchSOPChapter('rules')" id="btn-chapter-rules" class="sop-tab-btn flex items-center gap-2 text-left w-full text-purple-900 font-bold">
@@ -495,6 +495,26 @@
                                 <i class="fas fa-car"></i> 2.2 Vehicle Fleet Policy
                             </button>
                         </li>
+                        <li>
+                            <button onclick="switchSOPChapter('divisions')" id="btn-chapter-divisions" class="sop-tab-btn flex items-center gap-2 text-left w-full text-purple-950">
+                                <i class="fas fa-users-cog"></i> 3.1 Specialized Divisions
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="switchSOPChapter('activity')" id="btn-chapter-activity" class="sop-tab-btn flex items-center gap-2 text-left w-full text-purple-950">
+                                <i class="fas fa-clock"></i> 4.1 Activity & Hours
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="switchSOPChapter('duty')" id="btn-chapter-duty" class="sop-tab-btn flex items-center gap-2 text-left w-full text-purple-950">
+                                <i class="fas fa-briefcase"></i> 5.1 On-Duty Protocol
+                            </button>
+                        </li>
+                        <li>
+                            <button onclick="switchSOPChapter('turf-loc')" id="btn-chapter-turf-loc" class="sop-tab-btn flex items-center gap-2 text-left w-full text-purple-950">
+                                <i class="fas fa-map-marker-alt"></i> 6.1 Turf Coordinates
+                            </button>
+                        </li>
                     </ul>
 
                     <div class="mt-20 text-center opacity-40">
@@ -504,39 +524,26 @@
 
                 <!-- Cream Dossier Sheets Content Area -->
                 <div class="md:col-span-8 p-8 relative min-h-[500px] flex flex-col justify-between">
-                    <div id="sop-chapter-content">
+                    <div id="sop-chapter-content" class="w-full">
                         
                         <!-- TAB: STANDARD RULES & CODES -->
                         <div id="sop-tab-rules" class="sop-tab-pane">
                             <div class="flex justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
                                 <div class="text-center md:text-left">
                                     <span class="sop-serif font-black text-2xl tracking-widest block">STANDARD OPERATING PROCEDURE</span>
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">Los Santos Morados Dossier</span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">Los Santos Morados Dossier • 1.1</span>
                                 </div>
                                 <button onclick="copyDeepLink('rules')" class="bg-purple-950/10 hover:bg-purple-950/20 text-purple-950 text-[10px] px-2.5 py-1 rounded font-bold uppercase transition-all"><i class="fas fa-link mr-1"></i> Copy Link</button>
                             </div>
                             
                             <div class="text-xs text-purple-950 font-semibold leading-relaxed font-sans max-h-[400px] overflow-y-auto pr-2 space-y-6">
-                                <div class="pb-4 border-b border-purple-950/10">
+                                <div class="pb-4">
                                     <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">1.1 Following PSRP Gang Rules</h4>
-                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2 whitespace-pre-line">
-                                        You must always follow PSRP’s gang rules. [View GANG Discord]
-                                    </p>
-                                </div>
-                                <div class="pb-4 border-b border-purple-950/10">
-                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">2.1 Clothing</h4>
-                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2 whitespace-pre-line">
-                                        You must always follow the outfit rules listed below when creating your outfit:
-You are permitted to make yourself a custom outfit.
-However it must comply with the following rules:
-- Be mainly white & have some black
-- Look formal / professional 
-                                    </p>
-                                </div>
-                                <div class="pb-4 border-b border-purple-950/10">
-                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">2.2 Vehicles </h4>
-                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2 whitespace-pre-line">
-                                        You must follow the vehicle structure found in this website.
+                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2">
+                                        You must always follow PSRP’s gang rules. 
+                                        <a href="https://discord.com/channels/940074605291401216/1059851290118717490" target="_blank" class="text-purple-800 hover:text-lsm-500 underline font-bold inline-flex items-center gap-1 ml-1">
+                                            <i class="fab fa-discord"></i> View GANG Discord
+                                        </a>
                                     </p>
                                 </div>
                             </div>
@@ -546,17 +553,31 @@ However it must comply with the following rules:
                         <div id="sop-tab-outfits" class="sop-tab-pane hidden">
                             <div class="flex justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
                                 <div class="text-center md:text-left">
-                                    <span class="sop-serif font-black text-2xl tracking-widest block">Vehicles</span>
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">Vehicles</span>
+                                    <span class="sop-serif font-black text-2xl tracking-widest block">Uniform Policy</span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">Los Santos Morados Dossier • 2.1</span>
                                 </div>
                                 <button onclick="copyDeepLink('outfits')" class="bg-purple-950/10 hover:bg-purple-950/20 text-purple-950 text-[10px] px-2.5 py-1 rounded font-bold uppercase transition-all"><i class="fas fa-link mr-1"></i> Copy Link</button>
                             </div>
-                            <p class="text-xs text-purple-950 font-semibold leading-relaxed mb-6">Official uniform specifications and dress regulations for LSM Operations can be viewed directly by opening our guidelines document below.</p>
                             
-                            <div class="text-center mt-12">
-                                <a href="outfits_guide.pdf" target="_blank" class="inline-flex items-center gap-2 bg-purple-950 hover:bg-lsm-500 text-white font-bold text-xs uppercase px-6 py-3 rounded transition-all shadow-md">
-                                    <i class="fas fa-file-pdf text-sm"></i> Open Uniform Guidelines PDF
-                                </a>
+                            <div class="text-xs text-purple-950 font-semibold leading-relaxed font-sans max-h-[400px] overflow-y-auto pr-2 space-y-6">
+                                <div class="pb-4 border-b border-purple-950/10">
+                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">2.1 Clothing Rules</h4>
+                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2">
+                                        You must always follow the outfit rules listed below when creating your outfit:<br>
+                                        You are permitted to make yourself a custom outfit. However, it must comply with the following rules:
+                                    </p>
+                                    <ul class="list-disc list-inside mt-2 space-y-1">
+                                        <li>Be mainly white & have some black</li>
+                                        <li>Look formal / professional</li>
+                                    </ul>
+                                </div>
+                                <div class="pb-4">
+                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">Uniform Guidelines Document</h4>
+                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed mb-4">Official uniform specifications and dress regulations for LSM Operations can be viewed directly by opening our guidelines document below.</p>
+                                    <a href="outfits_guide.pdf" target="_blank" class="inline-flex items-center gap-2 bg-purple-950 hover:bg-lsm-500 text-white font-bold text-xs uppercase px-4 py-2 rounded transition-all shadow-md">
+                                        <i class="fas fa-file-pdf text-sm"></i> Open Uniform Guidelines PDF
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
@@ -565,16 +586,135 @@ However it must comply with the following rules:
                             <div class="flex justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
                                 <div class="text-center md:text-left">
                                     <span class="sop-serif font-black text-2xl tracking-widest block">2.2 FLEET & VEHICLE POLICIES</span>
-                                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">LSM Motorized Assets</span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">Los Santos Morados Dossier • 2.2</span>
                                 </div>
                                 <button onclick="copyDeepLink('vehicles')" class="bg-purple-950/10 hover:bg-purple-950/20 text-purple-950 text-[10px] px-2.5 py-1 rounded font-bold uppercase transition-all"><i class="fas fa-link mr-1"></i> Copy Link</button>
                             </div>
-                            <p class="text-xs text-purple-950 font-semibold leading-relaxed mb-6">Sanctioned fleet color profiles, class tiers, speed thresholds, and vehicle deployment limits can be viewed by opening the fleet presentation below.</p>
                             
-                            <div class="text-center mt-12">
-                                <a href="https://drive.google.com/file/d/18Mkpw1r-yV9BJiBXP_KzDMC2u05S23zq/view?usp=sharing" target="_blank" class="inline-flex items-center gap-2 bg-purple-950 hover:bg-lsm-500 text-white font-bold text-xs uppercase px-6 py-3 rounded transition-all shadow-md">
-                                    <i class="fas fa-file-pdf text-sm"></i> Open Vehicle Fleet Policy PDF
-                                </a>
+                            <div class="text-xs text-purple-950 font-semibold leading-relaxed font-sans max-h-[400px] overflow-y-auto pr-2 space-y-6">
+                                <div class="pb-4 border-b border-purple-950/10">
+                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">2.2 Vehicles & Fleet Rules</h4>
+                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2">
+                                        You must follow the vehicle structure found in this website. You can review all fleet parameters and class tiers by opening our official document below.
+                                    </p>
+                                </div>
+                                <div class="pb-4">
+                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">Vehicle Fleet Policy Document</h4>
+                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed mb-4">Sanctioned fleet color profiles, speed thresholds, and vehicle deployment limits can be viewed by opening the fleet presentation below.</p>
+                                    <a href="https://drive.google.com/file/d/18Mkpw1r-yV9BJiBXP_KzDMC2u05S23zq/view?usp=sharing" target="_blank" class="inline-flex items-center gap-2 bg-purple-950 hover:bg-lsm-500 text-white font-bold text-xs uppercase px-4 py-2 rounded transition-all shadow-md">
+                                        <i class="fas fa-file-pdf text-sm"></i> Open Vehicle Fleet Policy PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: SPECIALIZED DIVISIONS -->
+                        <div id="sop-tab-divisions" class="sop-tab-pane hidden">
+                            <div class="flex justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
+                                <div class="text-center md:text-left">
+                                    <span class="sop-serif font-black text-2xl tracking-widest block">SPECIALIZED DIVISIONS</span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">Los Santos Morados Dossier • 3.1</span>
+                                </div>
+                                <button onclick="copyDeepLink('divisions')" class="bg-purple-950/10 hover:bg-purple-950/20 text-purple-950 text-[10px] px-2.5 py-1 rounded font-bold uppercase transition-all"><i class="fas fa-link mr-1"></i> Copy Link</button>
+                            </div>
+                            
+                            <div class="text-xs text-purple-950 font-semibold leading-relaxed font-sans max-h-[400px] overflow-y-auto pr-2 space-y-6">
+                                <div class="pb-4 border-b border-purple-950/10">
+                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">3.1: How to become a recruiter</h4>
+                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2">
+                                        In order to become a LSM recruiter you must first reach the "Soldier" rank and then voicechat with a pre-command+.
+                                    </p>
+                                </div>
+                                <div class="pb-4 border-b border-purple-950/10">
+                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">3.2: How to become ticket support</h4>
+                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2">
+                                        You must first reach the rank "Soldier" & then voicechat with a pre-command+.
+                                    </p>
+                                </div>
+                                <div class="pb-4">
+                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">3.3: How to become a Report Team member</h4>
+                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2">
+                                        You must reach the rank Consigliere and then VC with a gang head (01-05).
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: ACTIVITY & HOUR REQUIREMENTS -->
+                        <div id="sop-tab-activity" class="sop-tab-pane hidden">
+                            <div class="flex justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
+                                <div class="text-center md:text-left">
+                                    <span class="sop-serif font-black text-2xl tracking-widest block">ACTIVITY & PROMOTIONS</span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">Los Santos Morados Dossier • 4.1</span>
+                                </div>
+                                <button onclick="copyDeepLink('activity')" class="bg-purple-950/10 hover:bg-purple-950/20 text-purple-950 text-[10px] px-2.5 py-1 rounded font-bold uppercase transition-all"><i class="fas fa-link mr-1"></i> Copy Link</button>
+                            </div>
+                            
+                            <div class="text-xs text-purple-950 font-semibold leading-relaxed font-sans max-h-[400px] overflow-y-auto pr-2 space-y-6">
+                                <div class="pb-4 border-b border-purple-950/10">
+                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">4.1: What are the hour requirements and how do I check my hours</h4>
+                                    <ul class="list-disc list-inside mt-2 space-y-1.5">
+                                        <li><strong>4 Hours</strong> = Single Promotion</li>
+                                        <li><strong>10 Hours</strong> = Double Promotion</li>
+                                        <li><strong>20 Hours</strong> = Triple Promotion</li>
+                                    </ul>
+                                </div>
+                                <div class="pb-4 border-b border-purple-950/10">
+                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">CGM Hour Reduction 👨</h4>
+                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-1">
+                                        As a Certified Gang Member you may receive the following hour reductions just for being a member:
+                                    </p>
+                                    <ul class="list-disc list-inside mt-2 space-y-1.5">
+                                        <li><strong>8 Hours</strong> = Double Promotion</li>
+                                        <li><strong>18 Hours</strong> = Triple Promotion</li>
+                                    </ul>
+                                </div>
+                                <div class="pb-4">
+                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">Auditing Your Hours</h4>
+                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2">
+                                        To check your hours run the command <code class="bg-purple-950/15 px-1.5 py-0.5 rounded font-mono">/evaluate</code> in any discord channel and select LSM as the department.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: GOING ON DUTY -->
+                        <div id="sop-tab-duty" class="sop-tab-pane hidden">
+                            <div class="flex justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
+                                <div class="text-center md:text-left">
+                                    <span class="sop-serif font-black text-2xl tracking-widest block">DUTY PROTOCOL</span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">Los Santos Morados Dossier • 5.1</span>
+                                </div>
+                                <button onclick="copyDeepLink('duty')" class="bg-purple-950/10 hover:bg-purple-950/20 text-purple-950 text-[10px] px-2.5 py-1 rounded font-bold uppercase transition-all"><i class="fas fa-link mr-1"></i> Copy Link</button>
+                            </div>
+                            
+                            <div class="text-xs text-purple-950 font-semibold leading-relaxed font-sans max-h-[400px] overflow-y-auto pr-2 space-y-6">
+                                <div class="pb-4">
+                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">5.1: How to go on duty as LSM</h4>
+                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2">
+                                        Use the command <code class="bg-purple-950/15 px-1.5 py-0.5 rounded font-mono">/duty</code> ingame and select the LSM gang.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TAB: TURF COORDINATES -->
+                        <div id="sop-tab-turf-loc" class="sop-tab-pane hidden">
+                            <div class="flex justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
+                                <div class="text-center md:text-left">
+                                    <span class="sop-serif font-black text-2xl tracking-widest block">GANG TURFS</span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-purple-950 opacity-65 block">Los Santos Morados Dossier • 6.1</span>
+                                </div>
+                                <button onclick="copyDeepLink('turf-loc')" class="bg-purple-950/10 hover:bg-purple-950/20 text-purple-950 text-[10px] px-2.5 py-1 rounded font-bold uppercase transition-all"><i class="fas fa-link mr-1"></i> Copy Link</button>
+                            </div>
+                            
+                            <div class="text-xs text-purple-950 font-semibold leading-relaxed font-sans max-h-[400px] overflow-y-auto pr-2 space-y-6">
+                                <div class="pb-4">
+                                    <h4 class="sop-serif font-bold text-sm border-b border-purple-950/10 pb-1 mt-4">6.1: Where can I find the gang turf</h4>
+                                    <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans mt-2">
+                                        View the section in the main part of the website for all turfs. Our main one is at postal 498.
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
@@ -859,7 +999,7 @@ However it must comply with the following rules:
             fetchAndRenderChangelogs();
 
             const h = window.location.hash.substring(1);
-            if (h === "rules" || h === "outfits" || h === "vehicles") {
+            if (h === "rules" || h === "outfits" || h === "vehicles" || h === "divisions" || h === "activity" || h === "duty" || h === "turf-loc") {
                 openDocumentsViewer(h);
             } else if (h === "changelog" || h === "release-news") {
                 openChangelog();
@@ -868,5 +1008,3 @@ However it must comply with the following rules:
     </script>
 </body>
 </html>
-
---- END OF FILE Paste July 16, 2026 - 9:13PM ---
