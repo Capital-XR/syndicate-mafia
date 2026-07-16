@@ -54,7 +54,7 @@
             background: #63207b;
             border-radius: 4px;
         }
-        /* SOP Dossier Cream Styling */
+        /* SOP & Changelog Dossier Cream Styling */
         .sop-container {
             background-color: #ebdcb9;
             color: #2b0c36;
@@ -86,7 +86,7 @@
                 <a href="https://docs.google.com/spreadsheets/d/1n9RkwCfGBSZyShZUQfAnkR-IddoaOIGI952LPv_4Ns0/edit?usp=sharing" target="_blank" class="hover:text-lsm-500 transition-colors uppercase font-semibold">Roster</a>
                 <a href="#turfs" class="hover:text-lsm-500 transition-colors">Turfs</a>
                 <a href="#gallery" class="hover:text-lsm-500 transition-colors">Gallery</a>
-                <a href="#changelog" class="hover:text-lsm-500 transition-colors">Changelog</a>
+                <button onclick="openChangelog()" class="hover:text-lsm-500 transition-colors uppercase font-semibold">Changelog</button>
                 <a href="https://discord.gg/wsErXv86QQ" target="_blank" class="bg-lsm-500 hover:bg-lsm-800 text-white px-4 py-2 rounded transition-colors flex items-center gap-2 text-xs">
                     <i class="fab fa-discord"></i> Discord
                 </a>
@@ -106,7 +106,7 @@
             <a href="https://docs.google.com/spreadsheets/d/1n9RkwCfGBSZyShZUQfAnkR-IddoaOIGI952LPv_4Ns0/edit?usp=sharing" target="_blank" onclick="toggleMobileMenu()" class="block text-sm tracking-wider uppercase hover:text-lsm-500 py-1">Roster</a>
             <a href="#turfs" onclick="toggleMobileMenu()" class="block text-sm tracking-wider uppercase hover:text-lsm-500 py-1">Turfs</a>
             <a href="#gallery" onclick="toggleMobileMenu()" class="block text-sm tracking-wider uppercase hover:text-lsm-500 py-1">Gallery</a>
-            <a href="#changelog" onclick="toggleMobileMenu()" class="block text-sm tracking-wider uppercase hover:text-lsm-500 py-1">Changelog</a>
+            <button onclick="toggleMobileMenu(); openChangelog();" class="block w-full text-left text-sm tracking-wider uppercase hover:text-lsm-500 py-1">Changelog</button>
             <a href="https://discord.gg/wsErXv86QQ" target="_blank" class="inline-block bg-lsm-500 hover:bg-lsm-800 text-white px-4 py-2 rounded transition-colors text-xs uppercase tracking-wider font-semibold">
                 <i class="fab fa-discord mr-1"></i> Discord
             </a>
@@ -170,13 +170,13 @@
                 <p class="text-gray-400 max-w-lg mx-auto text-sm">The administrative minds orchestrating all LSM operations across the state of San Andreas.</p>
             </div>
             
-            <!-- Command Cards Grid (EDIT HIGH COMMAND HERE) -->
+            <!-- Command Cards Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-20">
                 
                 <!-- Card 1 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 p-4 rounded text-center transition-all group">
                     <div class="w-24 h-24 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-lsm-500">
-                        <img src="PUT LINK" onerror="this.src='https://media.discordapp.net/attachments/1525621917468327941/1526942987794255943/d11e7732888d262b754fc5ac383f4ebe_2.png?ex=6a58dbf9&is=6a578a79&hm=a12e04c2efeca2b514f5dfd521d40bd2ecd8bcabfa547874ec46013fe5d9992a&=&format=webp&quality=lossless&width=913&height=913'" alt="Leading Commissioner" class="w-full h-full object-cover">
+                        <img src="d11e7732888d262b754fc5ac383f4ebe_2.png" onerror="this.src='https://placehold.co/150x150/1e0529/63207b?text=01'" alt="Leading Commissioner" class="w-full h-full object-cover">
                     </div>
                     <span class="block text-xs uppercase tracking-widest text-lsm-500 font-bold mb-1">Leading Commissioner</span>
                     <span class="block font-semibold text-white tracking-wide">A. Anderson | 01</span>
@@ -185,7 +185,7 @@
                 <!-- Card 2 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 p-4 rounded text-center transition-all group">
                     <div class="w-24 h-24 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-lsm-500">
-                        <img src="PUT LINK" onerror="this.src='https://cdn.discordapp.com/attachments/1525621917468327941/1526943091515457628/3aec117f0bcfa7e46f2969dc800684a1.jpg?ex=6a58dc12&is=6a578a92&hm=f99d1daad7b4b59c4ac9dcb342a369b6c00d4ab8605b485e1c2ef25c4e96115b&'" alt="Executive Commissioner" class="w-full h-full object-cover">
+                        <img src="3aec117f0bcfa7e46f2969dc800684a1.jpg" onerror="this.src='https://placehold.co/150x150/1e0529/63207b?text=02'" alt="Executive Commissioner" class="w-full h-full object-cover">
                     </div>
                     <span class="block text-xs uppercase tracking-widest text-lsm-500 font-bold mb-1">Executive Commissioner</span>
                     <span class="block font-semibold text-white tracking-wide">J. Mills | 02</span>
@@ -194,7 +194,7 @@
                 <!-- Card 3 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 p-4 rounded text-center transition-all group">
                     <div class="w-24 h-24 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-lsm-500">
-                        <img src="PUT LINK" onerror="this.src='https://media.discordapp.net/attachments/1525621917468327941/1526943073496465448/31ad02ba2a1a498b4778b153e39caea3.png?ex=6a58dc0d&is=6a578a8d&hm=c780fc843c51e1743cb5600cbec68e0632a3cfb4513e68cbe93abe3df962c5fa&=&format=webp&quality=lossless&width=282&height=282'" alt="Asst. Executive Commissioner" class="w-full h-full object-cover">
+                        <img src="31ad02ba2a1a498b4778b153e39caea3_2.png" onerror="this.src='https://placehold.co/150x150/1e0529/63207b?text=03'" alt="Asst. Executive Commissioner" class="w-full h-full object-cover">
                     </div>
                     <span class="block text-xs uppercase tracking-widest text-lsm-500 font-bold mb-1">Asst. Executive Commissioner</span>
                     <span class="block font-semibold text-white tracking-wide">G. Rhodes | 03</span>
@@ -203,7 +203,7 @@
                 <!-- Card 4 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 p-4 rounded text-center transition-all group">
                     <div class="w-24 h-24 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-lsm-500">
-                        <img src="PUT LINK" onerror="this.src='https://media.discordapp.net/attachments/1525621917468327941/1526943071244128296/a958a48c9e86e2dacca21fc754a0f722.png?ex=6a58dc0d&is=6a578a8d&hm=ae4e303e932d2f82b59299f39de63846ccaa4a761a69673e9eae259f9a943c65&=&format=webp&quality=lossless&width=913&height=913'" alt="Commissioner" class="w-full h-full object-cover">
+                        <img src="a958a48c9e86e2dacca21fc754a0f722_1.png" onerror="this.src='https://placehold.co/150x150/1e0529/63207b?text=04'" alt="Commissioner" class="w-full h-full object-cover">
                     </div>
                     <span class="block text-xs uppercase tracking-widest text-lsm-500 font-bold mb-1">Commissioner</span>
                     <span class="block font-semibold text-white tracking-wide">A. Jackson | 04</span>
@@ -212,7 +212,7 @@
                 <!-- Card 5 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 p-4 rounded text-center transition-all group">
                     <div class="w-24 h-24 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-lsm-500">
-                        <img src="PUT LINK" onerror="this.src='https://cdn.discordapp.com/attachments/1525621963802935469/1527243505209049098/d7c4e940e9bc8aa065a85686f1331d50.png?ex=6a59f3da&is=6a58a25a&hm=bb602181a66e4d72e9196c30153155b423a2ab6524a6c99dbf97f8a4c96af626&'" alt="Asst. Commissioner" class="w-full h-full object-cover">
+                        <img src="d7c4e940e9bc8aa065a85686f1331d50.png" onerror="this.src='https://placehold.co/150x150/1e0529/63207b?text=05'" alt="Asst. Commissioner" class="w-full h-full object-cover">
                     </div>
                     <span class="block text-xs uppercase tracking-widest text-lsm-500 font-bold mb-1">Asst. Commissioner</span>
                     <span class="block font-semibold text-white tracking-wide">M. Hannah | 05</span>
@@ -226,13 +226,13 @@
                 <p class="text-gray-400 max-w-lg mx-auto text-sm">Our Pre-Command team. Elite individuals executing LSM actions and preparing to step up.</p>
             </div>
 
-            <!-- Inner Circle Cards Grid (EDIT PRE-COMMAND HERE) -->
+            <!-- Inner Circle Cards Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                 
                 <!-- Spot 1 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 p-4 rounded text-center transition-all group">
                     <div class="w-20 h-20 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-lsm-500">
-                        <img src="PUT LINK" onerror="this.src='https://media.discordapp.net/attachments/1525621917468327941/1526943073228165120/8fe1afff43197d67e70f6693f3a94e26.png?ex=6a58dc0d&is=6a578a8d&hm=8fe7b2988b5c40abb18d5cbcc3717d8f62de4b9d376b92a9299633bc198431d6&=&format=webp&quality=lossless&width=913&height=913'" alt="Inner Circle" class="w-full h-full object-cover">
+                        <img src="8fe1afff43197d67e70f6693f3a94e26.png" onerror="this.src='https://placehold.co/150x150/1e0529/63207b?text=06'" alt="Inner Circle" class="w-full h-full object-cover">
                     </div>
                     <span class="block text-xs uppercase tracking-widest text-lsm-500 font-bold mb-1">Inner Circle</span>
                     <span class="block font-semibold text-white tracking-wide">B. Bert | 06</span>
@@ -241,7 +241,7 @@
                 <!-- Spot 2 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 p-4 rounded text-center transition-all group">
                     <div class="w-20 h-20 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-lsm-500">
-                        <img src="PUT LINK" onerror="this.src='https://cdn.discordapp.com/attachments/1525621917468327941/1526944853785841774/scratch_pvp.gif?ex=6a58ddb6&is=6a578c36&hm=d93808d3d89e423b886149428a1b185d79c891762603967a0f977eaff4a8e093&'" alt="Inner Circle" class="w-full h-full object-cover">
+                        <img src="scratch pvp.gif" onerror="this.src='https://placehold.co/150x150/1e0529/63207b?text=07'" alt="Inner Circle" class="w-full h-full object-cover">
                     </div>
                     <span class="block text-xs uppercase tracking-widest text-lsm-500 font-bold mb-1">Inner Circle</span>
                     <span class="block font-semibold text-white tracking-wide">Scratch | 07</span>
@@ -250,28 +250,28 @@
                 <!-- Spot 3 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 p-4 rounded text-center transition-all group">
                     <div class="w-20 h-20 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-lsm-500">
-                        <img src="PUT LINK" onerror="this.src='https://media.discordapp.net/attachments/1525621917468327941/1526943072049565837/e9364dd69fa5ae01c4f7e6427033eaa6.png?ex=6a5984cd&is=6a58334d&hm=a49a7b129e14a943610d2f8c3ef62014d0a73f557714d0a7cc832171eee21303&=&format=webp&quality=lossless&width=1178&height=1178'" alt="Inner Circle" class="w-full h-full object-cover">
+                        <img src="images.jpg" onerror="this.src='https://placehold.co/150x150/1e0529/63207b?text=08'" alt="Inner Circle" class="w-full h-full object-cover">
                     </div>
                     <span class="block text-xs uppercase tracking-widest text-lsm-500 font-bold mb-1">Inner Circle</span>
-                    <span class="block font-semibold text-white tracking-wide">S. Shawott  | 08</span>
+                    <span class="block font-semibold text-white tracking-wide">M. Mack | 08</span>
                 </div>
 
                 <!-- Spot 4 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 p-4 rounded text-center transition-all group">
                     <div class="w-20 h-20 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-lsm-500">
-                        <img src="PUT LINK" onerror="this.src='https://cdn.discordapp.com/attachments/1525621917468327941/1526944938854584320/bcb619ae3eb7ef1631c40f40793fb5b2.png?ex=6a58ddca&is=6a578c4a&hm=91711ffe10ee6dfa7c630be444e3a28def8e5ad1dae87a8d632050c833fb09e3&'" alt="Inner Circle" class="w-full h-full object-cover">
+                        <img src="e9364dd69fa5ae01c4f7e6427033eaa6_1.png" onerror="this.src='https://placehold.co/150x150/1e0529/63207b?text=09'" alt="Inner Circle" class="w-full h-full object-cover">
                     </div>
                     <span class="block text-xs uppercase tracking-widest text-lsm-500 font-bold mb-1">Inner Circle</span>
-                    <span class="block font-semibold text-white tracking-wide">Bo Jackson | 09</span>
+                    <span class="block font-semibold text-white tracking-wide">S. Shawott | 09</span>
                 </div>
 
                 <!-- Spot 5 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 p-4 rounded text-center transition-all group">
                     <div class="w-20 h-20 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-lsm-500">
-                        <img src="PUT LINK" onerror="this.src='https://placehold.co/150x150/1a1a1a/63207b?text=LSM'" alt="Inner Circle" class="w-full h-full object-cover">
+                        <img src="bcb619ae3eb7ef1631c40f40793fb5b2.png" onerror="this.src='https://placehold.co/150x150/1a1a1a/63207b?text=Vacant'" alt="Inner Circle" class="w-full h-full object-cover">
                     </div>
                     <span class="block text-xs uppercase tracking-widest text-lsm-500 font-bold mb-1">Inner Circle</span>
-                    <span class="block font-semibold text-white tracking-wide">Vacant</span>
+                    <span class="block font-semibold text-white tracking-wide">Bo. Jackson | 10</span>
                 </div>
 
             </div>
@@ -359,13 +359,13 @@
                 <p class="text-gray-400 text-sm">Sectors, safehouses, and postal zones under the direct control of Los Santos Morados.</p>
             </div>
             
-            <!-- Turfs Grid (EDIT GANG TURF HERE) -->
+            <!-- Turfs Grid -->
             <div id="turfs-grid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 
                 <!-- Turf 1 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 rounded-lg overflow-hidden transition-all flex flex-col justify-between">
                     <div class="h-40 bg-purple-950/20 overflow-hidden relative border-b border-purple-950/40">
-                        <img src="PUT LINK" onerror="this.src='https://cdn.discordapp.com/attachments/1525621917468327941/1526945383643746469/final_front.png?ex=6a58de34&is=6a578cb4&hm=ea49fbdf028cf9e9e5bb5126ba27845da067e2f90bc4a76202d67fbc5506fb06&'" alt="Turf" class="w-full h-full object-cover">
+                        <img src="final_front.png" onerror="this.src='https://placehold.co/400x250/1e0529/63207b?text=Main+Turf'" alt="Turf" class="w-full h-full object-cover">
                         <span class="absolute top-2 right-2 bg-lsm-500 text-white font-bold text-[10px] px-2 py-0.5 rounded tracking-wide">POSTAL 498</span>
                     </div>
                     <div class="p-4 text-center">
@@ -376,7 +376,7 @@
                 <!-- Turf 2 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 rounded-lg overflow-hidden transition-all flex flex-col justify-between">
                     <div class="h-40 bg-purple-950/20 overflow-hidden relative border-b border-purple-950/40">
-                        <img src="PUT LINK" onerror="this.src='https://placehold.co/400x250/1a1a1a/63207b?text=LSM+TURF'" alt="Turf" class="w-full h-full object-cover">
+                        <img src="turf2.png" onerror="this.src='https://placehold.co/400x250/1a1a1a/63207b?text=LSM+TURF'" alt="Turf" class="w-full h-full object-cover">
                         <span class="absolute top-2 right-2 bg-lsm-500 text-white font-bold text-[10px] px-2 py-0.5 rounded tracking-wide">POSTAL 000</span>
                     </div>
                     <div class="p-4 text-center">
@@ -387,7 +387,7 @@
                 <!-- Turf 3 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 rounded-lg overflow-hidden transition-all flex flex-col justify-between">
                     <div class="h-40 bg-purple-950/20 overflow-hidden relative border-b border-purple-950/40">
-                        <img src="PUT LINK" onerror="this.src='https://placehold.co/400x250/1a1a1a/63207b?text=LSM+TURF'" alt="Turf" class="w-full h-full object-cover">
+                        <img src="turf3.png" onerror="this.src='https://placehold.co/400x250/1a1a1a/63207b?text=LSM+TURF'" alt="Turf" class="w-full h-full object-cover">
                         <span class="absolute top-2 right-2 bg-lsm-500 text-white font-bold text-[10px] px-2 py-0.5 rounded tracking-wide">POSTAL 000</span>
                     </div>
                     <div class="p-4 text-center">
@@ -398,7 +398,7 @@
                 <!-- Turf 4 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 rounded-lg overflow-hidden transition-all flex flex-col justify-between">
                     <div class="h-40 bg-purple-950/20 overflow-hidden relative border-b border-purple-950/40">
-                        <img src="PUT LINK" onerror="this.src='https://placehold.co/400x250/1a1a1a/63207b?text=LSM+TURF'" alt="Turf" class="w-full h-full object-cover">
+                        <img src="turf4.png" onerror="this.src='https://placehold.co/400x250/1a1a1a/63207b?text=LSM+TURF'" alt="Turf" class="w-full h-full object-cover">
                         <span class="absolute top-2 right-2 bg-lsm-500 text-white font-bold text-[10px] px-2 py-0.5 rounded tracking-wide">POSTAL 000</span>
                     </div>
                     <div class="p-4 text-center">
@@ -418,131 +418,24 @@
             <p class="text-gray-400 text-sm">Visual reports showcasing LSM power, presence, and gatherings.</p>
         </div>
 
-        <!-- Gallery Grid (EDIT SHOWCASE IMAGE HERE) -->
+        <!-- Gallery Grid -->
         <div class="grid md:grid-cols-3 gap-6">
             
             <!-- Image 1 -->
             <div class="aspect-video bg-black/55 border border-purple-900/20 rounded overflow-hidden relative group">
-                <img src="PUT LINK" onerror="this.src='https://cdn.discordapp.com/attachments/1525621917468327941/1526945383643746469/final_front.png?ex=6a58de34&is=6a578cb4&hm=ea49fbdf028cf9e9e5bb5126ba27845da067e2f90bc4a76202d67fbc5506fb06&'" alt="LSM Turf" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                <img src="final_front.png" onerror="this.src='https://placehold.co/600x400/1e0529/63207b?text=Gathering+1'" alt="LSM Turf" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
             </div>
 
             <!-- Image 2 -->
             <div class="aspect-video bg-black/55 border border-purple-900/20 rounded overflow-hidden relative group">
-                <img src="PUT LINK" onerror="this.src='https://media.discordapp.net/attachments/1525621917468327941/1526945698707148870/final_golf_cart.png?ex=6a58de7f&is=6a578cff&hm=1cd489c48be14486abb0deaa6cf1ecb4090df13354e3ece7872a18c2a570c4f8&=&format=webp&quality=lossless&width=913&height=607'" alt="LSM Turf" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                <img src="final_golf_cart.png" onerror="this.src='https://placehold.co/600x400/1e0529/63207b?text=Gathering+2'" alt="LSM Turf" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
             </div>
 
             <!-- Image 3 -->
             <div class="aspect-video bg-black/55 border border-purple-900/20 rounded overflow-hidden relative group">
-                <img src="PUT LINK" onerror="this.src='https://media.discordapp.net/attachments/1525621917468327941/1526945698212352144/final_poolpng.png?ex=6a58de7f&is=6a578cff&hm=e477fea1bf868b92093ac423625b739e56de515bb03df12aa109f46a658cbe13&=&format=webp&quality=lossless&width=913&height=608'" alt="LSM Turf" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
+                <img src="final_pool.png" onerror="this.src='https://placehold.co/600x400/1e0529/63207b?text=Gathering+3'" alt="LSM Turf" class="w-full h-full object-cover transition duration-500 group-hover:scale-105">
             </div>
 
-        </div>
-    </section>
-
-    <!-- Change Log Section -->
-    <section id="changelog" class="py-20 px-4 bg-lsm-card border-t border-purple-950/40">
-        <div class="max-w-7xl mx-auto">
-            <div class="text-center mb-16">
-                <h2 class="serif-font text-3xl font-bold text-white mb-2">OPERATIONAL CHANGELOG</h2>
-                <div class="w-24 h-1 bg-lsm-500 mx-auto mb-4"></div>
-                <p class="text-gray-400 text-sm">System updates, tactical modifications, and policy announcements.</p>
-            </div>
-
-            <!-- Changelog Container -->
-            <div class="space-y-6 max-w-4xl mx-auto">
-
-                <!-- ========================================== -->
-                <!-- [START COPY] SINGLE CHANGELOG ENTRY        -->
-                <!-- ========================================== -->
-                <!-- Note: Change the ID (e.g. changelog-v1) to whatever custom hashtag you want for deep-linking -->
-                <div id="release-news" class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 rounded-lg p-6 flex flex-col md:flex-row gap-6 items-start transition-all">
-                    
-                    <!-- Text Content Area -->
-                    <div class="flex-1">
-                        <div class="flex justify-between items-start gap-4 mb-2">
-                            <div>
-                                <h3 class="serif-font font-bold text-lg text-white">Release News</h3>
-                                <span class="text-xs text-lsm-500 font-bold tracking-wider uppercase block mt-1">July 11-16, 2026</span>
-                            </div>
-                            
-                            <!-- Copy Link Action -->
-                            <button onclick="copyDeepLink('changelog-v1')" class="bg-purple-950/30 hover:bg-purple-950/70 text-gray-300 hover:text-white border border-purple-900/30 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1.5 rounded transition-all flex items-center gap-1.5 shrink-0">
-                                <i class="fas fa-link"></i> Copy Link
-                            </button>
-                        </div>
-                        <p class="text-gray-300 text-sm leading-relaxed mb-4">
-                            - High Command Team:
-01 | A. Anderson
-02 | J. Mills
-03 | G. Rhodes
-04 | A. Jackson
-05 | M. Hannah
-
-- Pre Command Team:
-06 | B. Bert
-07 | Scratch
-08 | M. Mack
-09 | S. Shawott
-10 | Bo. Jackson
-
-- Ranks:
-High-Command
-Pre-Command
-Consigliere [LC]
-Underboss [LC]
-Capo [SUP]
-Shot Caller [SUP]
-Soldier [SUP]
-Enforcer
-Bagman
-Earner
-Associate
-Runner
-Hoodlum
-Street Rat
-
-- Turfs:
-Main: 498 (LS)
-
-- EUP & vehicles:
-EUP: Custom EUP Being Made
-Vehicles: Structure Done (No Custom Cars)
-
-- Lore:
-The former Ancelotti Crime Family built its reputation through large-scale drug manufacturing and trafficking in Liberty City. Now expanding to Los Santos under the revived Los Santos Morados (LSM) name, they aim to grow their empire and eliminate the competition.
-
-LSM operates in silence, relying on strict professionalism, tailored suits, and calculated actions. They also work closely with organizations such as the BDBE Black Site, an underground hitman network, to enforce control over their interests.
-
-- What We Offer:
-Great Roleplay
-Beautiful Turf & Vehicles
-Fun Events
-Close work with PSRP businesses (BDBE, Horny's Burgers, etc)
-Great Activity
-
-- Why Join Us:
-You are able to experience some great RP that you have NEVER seen before! You can even join us while being in any other gang (Besides other Mafias). 
-Our high-command & pre-command team is also very experienced, having multiple department higher ups, trial managements, and more!
-
-- Gang Type:
-Mafia
-
-- Discord:
-https://discord.gg/dcXR572Cvn
-                        </p>
-                    </div>
-
-                    <!-- Media Attachment Area (1 Image) -->
-                    <div class="w-full md:w-32 md:h-32 aspect-video md:aspect-square bg-purple-950/20 rounded overflow-hidden border border-purple-900/30 shrink-0">
-                        <img src="PUT IMAGE LINK" onerror="this.src='https://cdn.discordapp.com/attachments/1525621917468327941/1526945383643746469/final_front.png?ex=6a5986f4&is=6a583574&hm=70516aee922a885d549c885ce6ee3c853ed55c8ef74a6817cc075b0f429cb6ff&'" alt="Changelog Media" class="w-full h-full object-cover">
-                    </div>
-
-                </div>
-                <!-- ========================================== -->
-                <!-- [END COPY] SINGLE CHANGELOG ENTRY          -->
-                <!-- ========================================== -->
-
-            </div>
         </div>
     </section>
 
@@ -640,7 +533,7 @@ However it must comply with the following rules:
                             </div>
                         </div>
 
-                        <!-- TAB: UNIFORM GUIDELINES (EDIT OUTFIT PDF HERE) -->
+                        <!-- TAB: UNIFORM GUIDELINES -->
                         <div id="sop-tab-outfits" class="sop-tab-pane hidden">
                             <div class="flex justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
                                 <div class="text-center md:text-left">
@@ -652,13 +545,13 @@ However it must comply with the following rules:
                             <p class="text-xs text-purple-950 font-semibold leading-relaxed mb-6">Official uniform specifications and dress regulations for LSM Operations can be viewed directly by opening our guidelines document below.</p>
                             
                             <div class="text-center mt-12">
-                                <a href="PUT LINK" target="_blank" class="inline-flex items-center gap-2 bg-purple-950 hover:bg-lsm-500 text-white font-bold text-xs uppercase px-6 py-3 rounded transition-all shadow-md">
+                                <a href="outfits_guide.pdf" target="_blank" class="inline-flex items-center gap-2 bg-purple-950 hover:bg-lsm-500 text-white font-bold text-xs uppercase px-6 py-3 rounded transition-all shadow-md">
                                     <i class="fas fa-file-pdf text-sm"></i> Open Uniform Guidelines PDF
                                 </a>
                             </div>
                         </div>
 
-                        <!-- TAB: VEHICLE FLEET POLICY (EDIT VEHICLE PDF HERE) -->
+                        <!-- TAB: VEHICLE FLEET POLICY -->
                         <div id="sop-tab-vehicles" class="sop-tab-pane hidden">
                             <div class="flex justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
                                 <div class="text-center md:text-left">
@@ -682,6 +575,160 @@ However it must comply with the following rules:
         </div>
     </div>
 
+
+    <!-- ======================================================= -->
+    <!-- DEDICATED CHANGELOG DOSSIER MODAL                       -->
+    <!-- ======================================================= -->
+    <div id="changelog-modal" class="fixed inset-0 bg-black/90 overflow-y-auto hidden z-50 p-2 md:p-6">
+        <div class="max-w-4xl mx-auto sop-container rounded-lg relative shadow-2xl border border-amber-900/20 overflow-hidden">
+            
+            <!-- Header -->
+            <div class="flex justify-between items-center bg-purple-950 px-6 py-4 text-white">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full border border-purple-300 flex items-center justify-center bg-purple-900 text-xs text-purple-200">𝔖</div>
+                    <span class="serif-font font-black tracking-wider text-sm">LOS SANTOS MORADOS DOSSIER</span>
+                </div>
+                <button onclick="closeChangelog()" class="text-gray-300 hover:text-white text-lg"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="p-6 md:p-8">
+                
+                <!-- Title & Date Details -->
+                <div class="flex flex-col md:flex-row justify-between items-start border-b border-purple-950/10 pb-4 mb-6">
+                    <div>
+                        <span class="sop-serif font-black text-2xl md:text-3xl tracking-widest block uppercase">Release News</span>
+                        <span class="text-xs font-bold uppercase tracking-widest text-purple-800 opacity-80 block mt-1">July 11-16, 2026 • Update Archive</span>
+                    </div>
+                    <div class="mt-4 md:mt-0 flex gap-2">
+                        <button onclick="copyDeepLink('release-news')" class="bg-purple-950/10 hover:bg-purple-950/20 text-purple-950 text-xs px-3 py-1.5 rounded font-bold uppercase transition-all flex items-center gap-1.5"><i class="fas fa-link"></i> Copy Link</button>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-12 gap-6 text-purple-950 text-xs font-semibold leading-relaxed">
+                    
+                    <!-- Left Column: Command, Ranks, Turfs & Specs -->
+                    <div class="md:col-span-5 space-y-6 bg-purple-950/5 p-4 rounded-lg border border-purple-950/10">
+                        
+                        <!-- High Command Team -->
+                        <div>
+                            <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">High Command Team</h4>
+                            <ul class="space-y-1">
+                                <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>01 | A. Anderson</span> <span class="opacity-60">LC</span></li>
+                                <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>02 | J. Mills</span> <span class="opacity-60">EC</span></li>
+                                <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>03 | G. Rhodes</span> <span class="opacity-60">AEC</span></li>
+                                <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>04 | A. Jackson</span> <span class="opacity-60">Comm</span></li>
+                                <li class="flex justify-between"><span>05 | M. Hannah</span> <span class="opacity-60">Asst. Comm</span></li>
+                            </ul>
+                        </div>
+
+                        <!-- Pre-Command Team -->
+                        <div>
+                            <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">Pre Command Team</h4>
+                            <ul class="space-y-1">
+                                <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>06 | B. Bert</span> <span class="opacity-60">Inner Circle</span></li>
+                                <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>07 | Scratch</span> <span class="opacity-60">Inner Circle</span></li>
+                                <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>08 | M. Mack</span> <span class="opacity-60">Inner Circle</span></li>
+                                <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>09 | S. Shawott</span> <span class="opacity-60">Inner Circle</span></li>
+                                <li class="flex justify-between"><span>10 | Bo. Jackson</span> <span class="opacity-60">Inner Circle</span></li>
+                            </ul>
+                        </div>
+
+                        <!-- Operational Parameters -->
+                        <div>
+                            <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">Assets & Turfs</h4>
+                            <div class="space-y-1">
+                                <p><strong class="font-bold">Main Turf:</strong> 498 (Los Santos)</p>
+                                <p><strong class="font-bold">EUP:</strong> Custom EUP Being Made</p>
+                                <p><strong class="font-bold">Vehicles:</strong> Structure Done (No Custom Cars)</p>
+                                <p><strong class="font-bold">Gang Type:</strong> Mafia</p>
+                            </div>
+                        </div>
+
+                        <!-- Hierarchy Ranks List -->
+                        <div>
+                            <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">Ranks Structure</h4>
+                            <div class="flex flex-wrap gap-1.5">
+                                <span class="bg-purple-950 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">High-Command</span>
+                                <span class="bg-purple-950 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Pre-Command</span>
+                                <span class="bg-purple-900 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Consigliere [LC]</span>
+                                <span class="bg-purple-900 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Underboss [LC]</span>
+                                <span class="bg-purple-800 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Capo [SUP]</span>
+                                <span class="bg-purple-800 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Shot Caller [SUP]</span>
+                                <span class="bg-purple-800 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Soldier [SUP]</span>
+                                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Enforcer</span>
+                                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Bagman</span>
+                                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Earner</span>
+                                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Associate</span>
+                                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Runner</span>
+                                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Hoodlum</span>
+                                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Street Rat</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Column: Lore & Strategy -->
+                    <div class="md:col-span-7 space-y-6">
+                        
+                        <!-- Briefing / Lore -->
+                        <div>
+                            <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">Strategic Intelligence / Lore</h4>
+                            <p class="text-xs text-purple-950 font-medium leading-relaxed font-sans whitespace-pre-line">
+                                The former Ancelotti Crime Family built its reputation through large-scale drug manufacturing and trafficking in Liberty City. Now expanding to Los Santos under the revived Los Santos Morados (LSM) name, they aim to grow their empire and eliminate the competition.
+
+                                LSM operates in silence, relying on strict professionalism, tailored suits, and calculated actions. They also work closely with organizations such as the BDBE Black Site, an underground hitman network, to enforce control over their interests.
+                            </p>
+                        </div>
+
+                        <!-- What We Offer -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">What We Offer</h4>
+                                <ul class="space-y-1 text-xs">
+                                    <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> High Quality Roleplay</li>
+                                    <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> Beautiful Turf & Vehicles</li>
+                                    <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> Structured Fun Events</li>
+                                    <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> Close PSRP Business Ties</li>
+                                    <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> High Level of Activity</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">Why Join Us</h4>
+                                <p class="text-[11px] leading-relaxed">
+                                    Experience exceptional, highly structured roleplay in Los Santos. We allow members to belong to other active gangs concurrently (except other mafias). 
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Media Attachment (Changelog local image) -->
+                        <div>
+                            <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">Operational Records</h4>
+                            <div class="w-full h-48 bg-purple-950/10 rounded-lg overflow-hidden border border-purple-950/25">
+                                <img src="final_front.png" onerror="this.src='https://placehold.co/600x300/1e0529/63207b?text=LSM+Operations'" class="w-full h-full object-cover" alt="LSM Operation Attachment">
+                            </div>
+                        </div>
+
+                        <!-- Discord Info -->
+                        <div class="p-4 bg-purple-950 text-white rounded-lg flex items-center justify-between">
+                            <div>
+                                <h4 class="serif-font font-bold text-sm tracking-wide">Ready to Enlist?</h4>
+                                <p class="text-[10px] opacity-75">Connect to our secure dispatch terminal.</p>
+                            </div>
+                            <a href="https://discord.gg/dcXR572Cvn" target="_blank" class="bg-[#decb9f] hover:bg-[#ebdcb9] text-purple-950 text-xs uppercase font-black px-4 py-2 rounded transition-all flex items-center gap-1.5">
+                                <i class="fab fa-discord"></i> Connect
+                            </a>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
     <!-- SCRIPTS -->
     <script>
         function toggleMobileMenu() {
@@ -696,6 +743,7 @@ However it must comply with the following rules:
             }
         }
 
+        /* SOP Document Viewer Handlers */
         function openDocumentsViewer(defaultChapter = 'rules') {
             window.location.hash = defaultChapter;
             document.getElementById('documents-viewer-modal').classList.remove('hidden');
@@ -705,14 +753,6 @@ However it must comply with the following rules:
         function closeDocumentsViewer() {
             window.location.hash = "";
             document.getElementById('documents-viewer-modal').classList.add('hidden');
-        }
-
-        function copyDeepLink(hash) {
-            const domain = window.location.href.split('#')[0];
-            const fullLink = `${domain}#${hash}`;
-            navigator.clipboard.writeText(fullLink)
-                .then(() => alert(`Direct access URL copied to clipboard: ${fullLink}`))
-                .catch(err => console.error("Could not copy link:", err));
         }
 
         function switchSOPChapter(chapId) {
@@ -739,11 +779,33 @@ However it must comply with the following rules:
             }
         }
 
-        // Deep linking router on load
+        /* Changelog Handlers */
+        function openChangelog() {
+            window.location.hash = "release-news";
+            document.getElementById('changelog-modal').classList.remove('hidden');
+        }
+
+        function closeChangelog() {
+            window.location.hash = "";
+            document.getElementById('changelog-modal').classList.add('hidden');
+        }
+
+        /* General URL Copier */
+        function copyDeepLink(hash) {
+            const domain = window.location.href.split('#')[0];
+            const fullLink = `${domain}#${hash}`;
+            navigator.clipboard.writeText(fullLink)
+                .then(() => alert(`Direct access URL copied to clipboard: ${fullLink}`))
+                .catch(err => console.error("Could not copy link:", err));
+        }
+
+        // Routing checks on system load
         window.onload = function() {
             const h = window.location.hash.substring(1);
             if (h === "rules" || h === "outfits" || h === "vehicles") {
                 openDocumentsViewer(h);
+            } else if (h === "release-news" || h === "changelog") {
+                openChangelog();
             }
         };
     </script>
