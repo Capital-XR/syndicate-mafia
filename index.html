@@ -170,7 +170,7 @@
                 <p class="text-gray-400 max-w-lg mx-auto text-sm">The administrative minds orchestrating all LSM operations across the state of San Andreas.</p>
             </div>
             
-            <!-- Command Cards Grid (5 slots) -->
+            <!-- Command Cards Grid -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-20">
                 
                 <!-- Card 1 -->
@@ -226,7 +226,7 @@
                 <p class="text-gray-400 max-w-lg mx-auto text-sm">Our Pre-Command team. Elite individuals executing LSM actions and preparing to step up.</p>
             </div>
 
-            <!-- Inner Circle Cards Grid (6 slots layout) -->
+            <!-- Inner Circle Cards Grid -->
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                 
                 <!-- Spot 1 -->
@@ -250,7 +250,7 @@
                 <!-- Spot 3 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 p-4 rounded text-center transition-all group">
                     <div class="w-20 h-20 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-lsm-500">
-                        <img src="images.jpg" onerror="this.src='images.jpg'; this.onerror=null;" alt="Inner Circle" class="w-full h-full object-cover">
+                        <img src="images.jpg" onerror="this.src='https://placehold.co/150x150/1e0529/63207b?text=LSM'; this.onerror=null;" alt="Inner Circle" class="w-full h-full object-cover">
                     </div>
                     <span class="block text-xs uppercase tracking-widest text-lsm-500 font-bold mb-1">Inner Circle</span>
                     <span class="block font-semibold text-white tracking-wide">M. Mack | 08</span>
@@ -277,7 +277,7 @@
                 <!-- Spot 6 -->
                 <div class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 p-4 rounded text-center transition-all group">
                     <div class="w-20 h-20 mx-auto rounded-full overflow-hidden bg-purple-950/20 mb-4 border border-purple-900/30 group-hover:border-lsm-500">
-                        <img src="images.jpg" onerror="this.src='images.jpg'; this.onerror=null;" alt="Inner Circle" class="w-full h-full object-cover">
+                        <img src="https://placehold.co/150x150/1e0529/63207b?text=LSM" onerror="this.src='logo.png'; this.onerror=null;" alt="Inner Circle" class="w-full h-full object-cover">
                     </div>
                     <span class="block text-xs uppercase tracking-widest text-lsm-500 font-bold mb-1">Inner Circle</span>
                     <span class="block font-semibold text-white tracking-wide">Vacant | 11</span>
@@ -600,10 +600,10 @@ However it must comply with the following rules:
                 <button onclick="closeChangelog()" class="text-gray-300 hover:text-white text-lg"><i class="fas fa-times"></i></button>
             </div>
 
-            <!-- Panel Grid layout (identical to SOP) -->
+            <!-- Documents Panel Grid -->
             <div class="grid md:grid-cols-12 min-h-[600px]">
                 
-                <!-- Left Sidebar (Index) -->
+                <!-- Left Sidebar (Tabs) -->
                 <div class="md:col-span-4 bg-[#decb9f] border-r border-amber-900/10 p-6 flex flex-col justify-between">
                     <div>
                         <h3 class="sop-serif font-black text-xs tracking-wider uppercase mb-6 border-b border-purple-950/20 pb-2">Update Index</h3>
@@ -641,7 +641,7 @@ However it must comply with the following rules:
         // Enter your changelog paths. Empty slots ("") are automatically ignored.
         const changelogSlots = [
             "changelogs/release-news.html", // Slot 1
-            "changelogs/test.html", // Slot 2
+            "", // Slot 2
             "", // Slot 3
             "", // Slot 4
             "", // Slot 5
@@ -712,7 +712,11 @@ However it must comply with the following rules:
         }
 
         /* Dynamic Changelog File Loader and Parser */
+        let changelogsLoaded = false;
         async function fetchAndRenderChangelogs() {
+            if (changelogsLoaded) return;
+            changelogsLoaded = true;
+
             const tabList = document.getElementById('changelog-tab-list');
             const contentArea = document.getElementById('changelog-content-area');
             if (!tabList || !contentArea) return;
@@ -846,7 +850,7 @@ However it must comply with the following rules:
             const domain = window.location.href.split('#')[0];
             const fullLink = `${domain}#${hash}`;
             navigator.clipboard.writeText(fullLink)
-                .then(() => alert(`Direct access URL copied to clipboard: ${fullLink}`))
+                .then(() => alert("Direct access URL copied to clipboard: " + fullLink))
                 .catch(err => console.error("Could not copy link:", err));
         }
 
