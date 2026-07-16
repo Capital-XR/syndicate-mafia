@@ -1,11 +1,35 @@
-<div id="release-news" class="bg-black/55 border border-purple-900/20 hover:border-lsm-500/55 rounded-lg p-6 flex flex-col md:flex-row gap-6 items-start transition-all">
-    <!-- Left Column: Command, Ranks, Turfs & Specs -->
-    <div class="md:col-span-5 space-y-6 bg-purple-950/5 p-4 rounded-lg border border-purple-950/10 min-w-[280px]">
-        
-        <!-- High Command Team -->
+<div id="release-news" class="space-y-8 font-sans">
+    
+    <!-- Header Block -->
+    <div class="flex justify-between items-start gap-4 border-b border-purple-950/20 pb-4">
         <div>
-            <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">High Command Team</h4>
-            <ul class="space-y-1">
+            <h3 class="serif-font font-black text-2xl text-purple-950">Release News</h3>
+            <span class="text-xs text-purple-800/80 font-bold tracking-wider uppercase block mt-1">July 11-16, 2026</span>
+        </div>
+        
+        <!-- Deep Link Button -->
+        <button onclick="copyDeepLink('release-news')" class="bg-purple-950/10 hover:bg-purple-950/20 text-purple-950 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1.5 rounded transition-all flex items-center gap-1.5 shrink-0">
+            <i class="fas fa-link"></i> Copy Link
+        </button>
+    </div>
+
+    <!-- Briefing Section -->
+    <div class="bg-purple-950/5 p-5 rounded-lg border border-purple-950/10">
+        <h4 class="sop-serif font-black text-sm border-b border-purple-950/20 pb-1.5 mb-3">Strategic Intelligence / Lore</h4>
+        <p class="text-xs text-purple-950 font-semibold leading-relaxed font-sans">
+            The former Ancelotti Crime Family built its reputation through large-scale drug manufacturing and trafficking in Liberty City. Now expanding to Los Santos under the revived Los Santos Morados (LSM) name, they aim to grow their empire and eliminate the competition.
+            <br><br>
+            LSM operates in silence, relying on strict professionalism, tailored suits, and calculated actions. They also work closely with organizations such as the BDBE Black Site, an underground hitman network, to enforce control over their interests.
+        </p>
+    </div>
+
+    <!-- Roster Status Grid -->
+    <div class="grid md:grid-cols-2 gap-6 pt-2">
+        
+        <!-- High Command List -->
+        <div class="bg-purple-950/5 p-4 rounded border border-purple-950/10">
+            <h4 class="sop-serif font-black text-xs border-b border-purple-950/15 pb-1 mb-2">High Command Team</h4>
+            <ul class="space-y-1.5 text-xs text-purple-950">
                 <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>01 | A. Anderson</span> <span class="opacity-60">LC</span></li>
                 <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>02 | J. Mills</span> <span class="opacity-60">EC</span></li>
                 <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>03 | G. Rhodes</span> <span class="opacity-60">AEC</span></li>
@@ -14,10 +38,10 @@
             </ul>
         </div>
 
-        <!-- Pre-Command Team -->
-        <div>
-            <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">Pre Command Team</h4>
-            <ul class="space-y-1">
+        <!-- Pre-Command List -->
+        <div class="bg-purple-950/5 p-4 rounded border border-purple-950/10">
+            <h4 class="sop-serif font-black text-xs border-b border-purple-950/15 pb-1 mb-2">Pre Command Team</h4>
+            <ul class="space-y-1.5 text-xs text-purple-950">
                 <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>06 | B. Bert</span> <span class="opacity-60">Inner Circle</span></li>
                 <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>07 | Scratch</span> <span class="opacity-60">Inner Circle</span></li>
                 <li class="flex justify-between border-b border-purple-950/5 pb-1"><span>08 | M. Mack</span> <span class="opacity-60">Inner Circle</span></li>
@@ -26,10 +50,13 @@
             </ul>
         </div>
 
-        <!-- Operational Parameters -->
-        <div>
-            <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">Assets & Turfs</h4>
-            <div class="space-y-1">
+    </div>
+
+    <!-- Parameter Structures -->
+    <div class="grid md:grid-cols-2 gap-6 pt-2">
+        <div class="bg-purple-950/5 p-4 rounded border border-purple-950/10">
+            <h4 class="sop-serif font-black text-xs border-b border-purple-950/15 pb-1 mb-2">Assets & Turfs</h4>
+            <div class="space-y-1.5 text-xs text-purple-950">
                 <p><strong class="font-bold">Main Turf:</strong> 498 (Los Santos)</p>
                 <p><strong class="font-bold">EUP:</strong> Custom EUP Being Made</p>
                 <p><strong class="font-bold">Vehicles:</strong> Structure Done (No Custom Cars)</p>
@@ -37,91 +64,65 @@
             </div>
         </div>
 
-        <!-- Hierarchy Ranks List -->
-        <div>
-            <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">Ranks Structure</h4>
-            <div class="flex flex-wrap gap-1.5">
+        <div class="bg-purple-950/5 p-4 rounded border border-purple-950/10">
+            <h4 class="sop-serif font-black text-xs border-b border-purple-950/15 pb-1 mb-2">Ranks Structure</h4>
+            <div class="flex flex-wrap gap-1">
                 <span class="bg-purple-950 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">High-Command</span>
                 <span class="bg-purple-950 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Pre-Command</span>
-                <span class="bg-purple-900 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Consigliere [LC]</span>
-                <span class="bg-purple-900 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Underboss [LC]</span>
-                <span class="bg-purple-800 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Capo [SUP]</span>
-                <span class="bg-purple-800 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Shot Caller [SUP]</span>
-                <span class="bg-purple-800 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Soldier [SUP]</span>
-                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Enforcer</span>
-                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Bagman</span>
-                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Earner</span>
-                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Associate</span>
-                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Runner</span>
-                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Hoodlum</span>
-                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-2 py-0.5 rounded uppercase font-bold">Street Rat</span>
+                <span class="bg-purple-900 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Consigliere</span>
+                <span class="bg-purple-900 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Underboss</span>
+                <span class="bg-purple-800 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Capo</span>
+                <span class="bg-purple-800 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Shot Caller</span>
+                <span class="bg-purple-800 text-white text-[9px] px-2 py-0.5 rounded uppercase font-bold">Soldier</span>
+                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Enforcer</span>
+                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Bagman</span>
+                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Earner</span>
+                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Associate</span>
+                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Runner</span>
+                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Hoodlum</span>
+                <span class="bg-purple-700/20 text-purple-950 text-[9px] px-1.5 py-0.5 rounded uppercase font-bold">Street Rat</span>
             </div>
         </div>
-
     </div>
 
-    <!-- Right Column: Lore & Strategy -->
-    <div class="flex-1 space-y-6">
-        <div class="flex justify-between items-start gap-4 border-b border-purple-950/10 pb-4">
-            <div>
-                <h3 class="serif-font font-bold text-lg text-white">Release News</h3>
-                <span class="text-xs text-lsm-500 font-bold tracking-wider uppercase block mt-1">July 11-16, 2026</span>
-            </div>
-            
-            <!-- Copy Link Action (Matches ID of this element) -->
-            <button onclick="copyDeepLink('release-news')" class="bg-purple-950/30 hover:bg-purple-950/70 text-gray-300 hover:text-white border border-purple-900/30 text-[10px] uppercase font-bold tracking-wider px-2.5 py-1.5 rounded transition-all flex items-center gap-1.5">
-                <i class="fas fa-link"></i> Copy Link
-            </button>
+    <!-- Recruitment Parameters -->
+    <div class="grid md:grid-cols-2 gap-6 border-t border-purple-950/15 pt-6">
+        <div>
+            <h4 class="sop-serif font-black text-xs border-b border-purple-950/20 pb-1 mb-2">What We Offer</h4>
+            <ul class="space-y-1.5 text-xs text-purple-950">
+                <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> High Quality Roleplay</li>
+                <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> Beautiful Turf & Vehicles</li>
+                <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> Structured Fun Events</li>
+                <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> Close PSRP Business Ties</li>
+                <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> High Level of Activity</li>
+            </ul>
         </div>
 
-        <!-- Briefing / Lore -->
         <div>
-            <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">Strategic Intelligence / Lore</h4>
-            <p class="text-xs text-purple-950 font-medium leading-relaxed font-sans whitespace-pre-line">
-                The former Ancelotti Crime Family built its reputation through large-scale drug manufacturing and trafficking in Liberty City. Now expanding to Los Santos under the revived Los Santos Morados (LSM) name, they aim to grow their empire and eliminate the competition.
-
-                LSM operates in silence, relying on strict professionalism, tailored suits, and calculated actions. They also work closely with organizations such as the BDBE Black Site, an underground hitman network, to enforce control over their interests.
+            <h4 class="sop-serif font-black text-xs border-b border-purple-950/20 pb-1 mb-2">Why Join Us</h4>
+            <p class="text-xs text-purple-950 leading-relaxed">
+                Experience exceptional, highly structured roleplay in Los Santos. We allow members to belong to other active gangs concurrently (except other mafias). 
             </p>
         </div>
+    </div>
 
-        <!-- What We Offer -->
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">What We Offer</h4>
-                <ul class="space-y-1 text-xs">
-                    <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> High Quality Roleplay</li>
-                    <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> Beautiful Turf & Vehicles</li>
-                    <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> Structured Fun Events</li>
-                    <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> Close PSRP Business Ties</li>
-                    <li class="flex items-center gap-1.5"><i class="fas fa-check text-purple-800 text-[10px]"></i> High Level of Activity</li>
-                </ul>
-            </div>
-
-            <div>
-                <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">Why Join Us</h4>
-                <p class="text-[11px] leading-relaxed">
-                    Experience exceptional, highly structured roleplay in Los Santos. We allow members to belong to other active gangs concurrently (except other mafias). 
-                </p>
-            </div>
-        </div>
-
-        <!-- Media Attachment (Changelog local image) -->
-        <div>
-            <h4 class="sop-serif font-black text-sm border-b border-purple-950/10 pb-1 mb-2">Operational Records</h4>
-            <div class="w-full h-48 bg-purple-950/10 rounded-lg overflow-hidden border border-purple-950/25">
-                <img src="final_front.png" onerror="this.src='https://placehold.co/600x300/1e0529/63207b?text=LSM+Operations'" class="w-full h-full object-cover" alt="LSM Operation Attachment">
-            </div>
-        </div>
-
-        <!-- Discord Info -->
-        <div class="p-4 bg-purple-950 text-white rounded-lg flex items-center justify-between">
-            <div>
-                <h4 class="serif-font font-bold text-sm tracking-wide">Ready to Enlist?</h4>
-                <p class="text-[10px] opacity-75">Connect to our secure dispatch terminal.</p>
-            </div>
-            <a href="https://discord.gg/dcXR572Cvn" target="_blank" class="bg-[#decb9f] hover:bg-[#ebdcb9] text-purple-950 text-xs uppercase font-black px-4 py-2 rounded transition-all flex items-center gap-1.5">
-                <i class="fab fa-discord"></i> Connect
-            </a>
+    <!-- File Attachment Showcase -->
+    <div class="border-t border-purple-950/15 pt-6">
+        <h4 class="sop-serif font-black text-xs border-b border-purple-950/20 pb-1 mb-3">Operational Records</h4>
+        <div class="w-full h-auto rounded-lg overflow-hidden border border-purple-950/15">
+            <img src="final_front.png" onerror="this.src='https://placehold.co/600x300/ebdcb9/2b0c36?text=LSM+Operations'" class="w-full h-full object-cover" alt="LSM Operation Attachment">
         </div>
     </div>
+
+    <!-- Secure Join Terminal link -->
+    <div class="p-5 bg-purple-950 text-white rounded-lg flex items-center justify-between shadow-sm">
+        <div>
+            <h4 class="serif-font font-bold text-sm tracking-wide">Ready to Enlist?</h4>
+            <p class="text-[10px] opacity-75">Connect to our secure dispatch terminal.</p>
+        </div>
+        <a href="https://discord.gg/dcXR572Cvn" target="_blank" class="bg-[#decb9f] hover:bg-[#ebdcb9] text-purple-950 text-xs uppercase font-black px-4 py-2.5 rounded transition-all flex items-center gap-1.5">
+            <i class="fab fa-discord"></i> Connect
+        </a>
+    </div>
+
 </div>
